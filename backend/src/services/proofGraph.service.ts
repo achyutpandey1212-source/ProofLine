@@ -152,18 +152,43 @@ export class ProofGraphService {
         relationship: "CONTAINS",
       });
 
-      // Child Extracted Fact nodes
+      // Child Extracted Fact nodes - curate key verification and business facts
       const factNodeIds: string[] = [];
       const factKeys = new Map<string, string>();
       const extractionData = ev.extraction.data;
 
+      // Key fields that matter for provenance verification
+      const ALLOWED_FACT_KEYS = new Set([
+        "weight",
+        "quantity",
+        "netWeight",
+        "grossWeight",
+        "tareWeight",
+        "transactionId",
+        "invoiceNumber",
+        "ticketNumber",
+        "scaleIdentifier",
+        "deviceIdentifier",
+        "sellerName",
+        "buyerName",
+        "issuerName",
+        "vendorName",
+        "date",
+        "time",
+        "timestamp",
+        "materialDescription",
+        "material",
+      ]);
+
       if (extractionData && typeof extractionData === "object") {
         for (const [key, rawVal] of Object.entries(extractionData)) {
           if (rawVal === null || rawVal === undefined || rawVal === "") continue;
+          if (typeof rawVal === "object") continue; // skip nested structures
+          if (!ALLOWED_FACT_KEYS.has(key)) continue; // ignore uncurated/raw OCR dump fields
 
           // Format value nicely
           let displayVal = String(rawVal);
-          if (key === "weight" && typeof rawVal === "number") {
+          if ((key === "weight" || key === "netWeight" || key === "grossWeight" || key === "tareWeight") && typeof rawVal === "number") {
             const unit = (extractionData as Record<string, unknown>)["unit"] || "kg";
             displayVal = `${rawVal} ${unit}`;
           } else if (key === "quantity" && typeof rawVal === "number") {
@@ -171,7 +196,7 @@ export class ProofGraphService {
             displayVal = `${rawVal} ${unit}`;
           }
 
-          // Skip secondary unit fields since they are folded into weight/quantity display
+          // Skip secondary unit fields
           if (key === "unit" || key === "quantityUnit") continue;
 
           const factId = `fact-${ev.evidenceId}-${key}`;

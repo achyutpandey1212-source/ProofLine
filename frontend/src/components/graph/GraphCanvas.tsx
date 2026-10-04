@@ -100,11 +100,15 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
     }
   };
 
+  const getNodeWidth = (type: string) => {
+    return type === "RESULT" ? 280 : type === "CASE" ? 260 : 240;
+  };
+
   const hasActiveSelection = selectedNodeId !== null;
 
   return (
     <div
-      className="absolute inset-0 origin-top-left transition-transform duration-75 select-none"
+      className="absolute inset-0 origin-top-left select-none will-change-transform"
       style={{
         transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
       }}
@@ -154,10 +158,11 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
           const targetNode = nodeMap.get(edge.target);
           if (!sourceNode || !targetNode) return null;
 
-          const sx = (sourceNode.x ?? 0) + 120;
-          const sy = (sourceNode.y ?? 0) + 40;
-          const tx = (targetNode.x ?? 0) + 120;
-          const ty = (targetNode.y ?? 0) + 40;
+          const sourceW = getNodeWidth(sourceNode.type);
+          const sx = (sourceNode.x ?? 0) + sourceW;
+          const sy = (sourceNode.y ?? 0) + 48; // vertically centered in node card
+          const tx = (targetNode.x ?? 0);
+          const ty = (targetNode.y ?? 0) + 48;
 
           const isHighlighted = highlightedEdgeIds.has(edge.id);
           const opacity = hasActiveSelection ? (isHighlighted ? 1 : 0.08) : 0.65;
@@ -165,11 +170,11 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
           const stroke = isHighlighted ? "url(#edge-gradient-active)" : "url(#edge-gradient-default)";
           const markerEnd = isHighlighted ? "url(#arrow-active)" : "url(#arrow-default)";
 
-          // Calculate cubic bezier curvature
-          const dx = tx - sx;
-          const cp1x = sx + Math.max(dx * 0.45, 60);
+          // Calculate horizontal cubic bezier curve
+          const dx = Math.max(tx - sx, 40);
+          const cp1x = sx + dx * 0.45;
           const cp1y = sy;
-          const cp2x = tx - Math.max(dx * 0.45, 60);
+          const cp2x = tx - dx * 0.45;
           const cp2y = ty;
 
           const pathD = `M ${sx} ${sy} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${tx} ${ty}`;

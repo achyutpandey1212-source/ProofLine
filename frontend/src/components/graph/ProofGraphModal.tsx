@@ -31,7 +31,7 @@ export const ProofGraphModal: React.FC<ProofGraphModalProps> = ({
 
   // Pan & Zoom state
   const [zoom, setZoom] = useState(0.85);
-  const [pan, setPan] = useState({ x: 40, y: 30 });
+  const [pan, setPan] = useState({ x: 50, y: 50 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
 
@@ -59,8 +59,6 @@ export const ProofGraphModal: React.FC<ProofGraphModalProps> = ({
     if (isOpen) {
       loadGraph();
       setSelectedNode(null);
-      setZoom(0.85);
-      setPan({ x: 40, y: 30 });
     }
   }, [isOpen, loadGraph]);
 
@@ -69,6 +67,24 @@ export const ProofGraphModal: React.FC<ProofGraphModalProps> = ({
     if (!data) return null;
     return computeGraphLayout(data.nodes, data.edges);
   }, [data]);
+
+  // Auto-center and fit graph when layout is computed or modal opened
+  useEffect(() => {
+    if (!layout || !viewportRef.current) return;
+    const vp = viewportRef.current;
+    const vpWidth = vp.clientWidth || 1200;
+    const vpHeight = vp.clientHeight || 750;
+
+    const scaleX = (vpWidth - 120) / Math.max(layout.bounds.width, 1);
+    const scaleY = (vpHeight - 120) / Math.max(layout.bounds.height, 1);
+    const fitScale = Math.min(Math.max(Math.min(scaleX, scaleY), 0.55), 1.0);
+
+    setZoom(fitScale);
+    setPan({
+      x: Math.max(40, (vpWidth - layout.bounds.width * fitScale) / 2),
+      y: Math.max(40, (vpHeight - layout.bounds.height * fitScale) / 2),
+    });
+  }, [layout]);
 
   // Compute transitive provenance highlights for selected node
   const { highlightedNodeIds, highlightedEdgeIds } = useMemo(() => {
@@ -138,37 +154,53 @@ export const ProofGraphModal: React.FC<ProofGraphModalProps> = ({
     return () => ctx.revert();
   }, [isOpen, loading, layout]);
 
-  // Pan / Drag handlers
+  // Pan / Drag handlers with window-level tracking
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return; // primary click only
+    // If clicking a node or control, let their click handlers take precedence
+    const target = e.target as HTMLElement;
+    if (target.closest(".proof-graph-node") || target.closest("button")) {
+      return;
+    }
     setIsDragging(true);
     dragStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  useEffect(() => {
     if (!isDragging) return;
-    setPan({
-      x: e.clientX - dragStartRef.current.x,
-      y: e.clientY - dragStartRef.current.y,
-    });
-  };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
+    const onMouseMove = (e: MouseEvent) => {
+      setPan({
+        x: e.clientX - dragStartRef.current.x,
+        y: e.clientY - dragStartRef.current.y,
+      });
+    };
+
+    const onMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+  }, [isDragging]);
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
-    setZoom((prev) => Math.min(Math.max(prev * zoomFactor, 0.4), 2.2));
+    setZoom((prev) => Math.min(Math.max(prev * zoomFactor, 0.35), 2.2));
   };
 
   // Zoom controls
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.15, 2.2));
-  const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.15, 0.4));
+  const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.15, 0.35));
   const handleResetView = () => {
     setZoom(0.85);
-    setPan({ x: 40, y: 30 });
+    setPan({ x: 50, y: 40 });
     setSelectedNode(null);
   };
 
@@ -258,8 +290,6 @@ export const ProofGraphModal: React.FC<ProofGraphModalProps> = ({
         <div
           ref={viewportRef}
           onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
           onWheel={handleWheel}
           onClick={() => setSelectedNode(null)}
           className={`relative flex-1 w-full h-full overflow-hidden bg-[#0a080a] ${
