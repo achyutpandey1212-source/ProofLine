@@ -8,6 +8,7 @@ import { initializeFirebase } from "./config/firebase";
 import { logProviderConfiguration } from "./services/aiProvider.service";
 import healthRoutes from "./routes/health.routes";
 import caseRoutes from "./routes/case.routes";
+import evidenceRoutes from "./routes/evidence.routes";
 import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
 import { logger } from "./utils/logger";
 
@@ -35,7 +36,7 @@ export const createApp = (): Express => {
     })
   );
 
-  // Request Body Parsers with reasonable size limits
+  // Request Body Parsers with reasonable size limits for JSON/urlencoded
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
@@ -51,6 +52,7 @@ export const createApp = (): Express => {
   // Mount API & System Routes
   app.use(healthRoutes);
   app.use(caseRoutes);
+  app.use(evidenceRoutes);
 
   // 404 & Centralized Error Handlers
   app.use(notFoundHandler);
