@@ -11,6 +11,7 @@ import { CaseDetailPage } from "./pages/CaseDetailPage";
 import { VerificationFlowPage } from "./pages/VerificationFlowPage";
 import { VerificationReportPage } from "./pages/VerificationReportPage";
 import { PlaygroundPage } from "./pages/PlaygroundPage";
+import { DocsPage } from "./pages/DocsPage";
 
 export const App: React.FC = () => {
   return (
@@ -21,6 +22,7 @@ export const App: React.FC = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/playground" element={<PlaygroundPage />} />
+          <Route path="/docs" element={<DocsPage />} />
           <Route
             path="/cases"
             element={

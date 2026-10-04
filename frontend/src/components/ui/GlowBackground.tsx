@@ -12,7 +12,7 @@ export const GlowBackground: React.FC<GlowBackgroundProps> = ({
   glowIntensity = "prominent",
 }) => {
   return (
-    <div className={`relative min-h-screen bg-[#080808] text-white selection:bg-[#FF6D29]/20 selection:text-white overflow-hidden ${className}`}>
+    <div className={`relative min-h-screen bg-[#080808] text-white selection:bg-[#FF6D29]/20 selection:text-white overflow-x-clip ${className}`}>
       {/* Top ambient radial bloom */}
       <div
         className={`absolute -top-32 left-1/2 -translate-x-1/2 w-[650px] sm:w-[900px] h-[520px] pointer-events-none blur-[130px] ${

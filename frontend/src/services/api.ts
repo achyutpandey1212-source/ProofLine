@@ -32,7 +32,7 @@ export class ApiClient {
       return "Your session has expired. Please sign in again.";
     }
     if (status === 404) {
-      return "Case or evidence not found.";
+      return (data as any)?.error?.message || data?.error || "Resource not found.";
     }
     if (status === 409) {
       return "Verification or processing is already in progress for this item.";

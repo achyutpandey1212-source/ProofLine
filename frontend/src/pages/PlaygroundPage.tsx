@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { GlowBackground } from "../components/ui/GlowBackground";
 import { JsonViewer } from "../components/playground/JsonViewer";
@@ -436,15 +437,13 @@ export const PlaygroundPage: React.FC = () => {
               <Sparkles className="w-3.5 h-3.5" />
               <span>{isDemoRunning ? "Running Demo Pipeline..." : "Try 1-Click Demo"}</span>
             </button>
-            <a
-              href="/Docs/API.md"
-              target="_blank"
-              rel="noreferrer"
+            <Link
+              to="/docs"
               className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-display text-white transition"
             >
               <ExternalLink className="w-3.5 h-3.5 text-[#BABABA]" />
               <span>Docs</span>
-            </a>
+            </Link>
           </div>
         </div>
 
