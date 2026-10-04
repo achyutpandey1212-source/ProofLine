@@ -38,6 +38,9 @@ export const Hero: React.FC = () => {
             descriptionRef.current,
             ctaGroupRef.current,
             scrollIndicatorRef.current,
+            ".hero-floating-chip-left",
+            ".hero-floating-chip-right",
+            ".hero-floating-badge",
           ],
           { opacity: 1, y: 0 }
         );
@@ -53,17 +56,12 @@ export const Hero: React.FC = () => {
       gsap.set(descriptionRef.current, { opacity: 0, y: 14 });
       gsap.set(ctaGroupRef.current, { opacity: 0, y: 14 });
       gsap.set(scrollIndicatorRef.current, { opacity: 0 });
+      gsap.set([".hero-floating-chip-left", ".hero-floating-chip-right", ".hero-floating-badge"], {
+        opacity: 0,
+        scale: 0.92,
+      });
 
       // Choreographed Master Entrance Timeline:
-      // 0.00s Page is almost black.
-      // 0.20s Mars video begins to become visible.
-      // 0.40s PROOFLINE fades in and moves upward ~8px.
-      // 0.60s Eyebrow fades in and moves upward ~12px.
-      // 0.75s "Proof," enters with a subtle upward motion.
-      // 0.95s "not promises." enters slightly after it.
-      // 1.20s Supporting copy fades upward.
-      // 1.40s Primary CTA and secondary CTA enter.
-      // 1.70s Micro UI elements appear.
       const tl = gsap.timeline({
         defaults: { ease: "power3.out" },
       });
@@ -78,7 +76,7 @@ export const Hero: React.FC = () => {
         },
         0.2
       )
-        // 0.40s: Nav (PROOFLINE)
+        // 0.40s: Nav
         .to(
           navRef.current,
           {
@@ -89,7 +87,7 @@ export const Hero: React.FC = () => {
           },
           0.4
         )
-        // 0.60s: Eyebrow
+        // 0.60s: Eyebrow pill
         .to(
           eyebrowRef.current,
           {
@@ -133,7 +131,7 @@ export const Hero: React.FC = () => {
           },
           1.2
         )
-        // 1.40s: CTAs
+        // 1.40s: Interactive Input Dock
         .to(
           ctaGroupRef.current,
           {
@@ -144,7 +142,19 @@ export const Hero: React.FC = () => {
           },
           1.4
         )
-        // 1.70s: Micro UI
+        // 1.55s: Floating pill chips reveal
+        .to(
+          [".hero-floating-chip-left", ".hero-floating-chip-right", ".hero-floating-badge"],
+          {
+            opacity: 1,
+            scale: 1,
+            duration: 0.9,
+            stagger: 0.12,
+            ease: "back.out(1.2)",
+          },
+          1.55
+        )
+        // 1.70s: Micro UI / Protocol bar
         .to(
           scrollIndicatorRef.current,
           {
@@ -154,6 +164,23 @@ export const Hero: React.FC = () => {
           },
           1.7
         );
+
+      // Subtle float animation for orbiting chips
+      gsap.to(".hero-floating-chip-left", {
+        y: "-=8",
+        repeat: -1,
+        yoyo: true,
+        duration: 3.2,
+        ease: "sine.inOut",
+      });
+
+      gsap.to(".hero-floating-chip-right", {
+        y: "+=8",
+        repeat: -1,
+        yoyo: true,
+        duration: 3.6,
+        ease: "sine.inOut",
+      });
 
       // Micro UI line pulse animation (calm and rhythmic)
       gsap.to(".scroll-line-pulse", {
@@ -177,14 +204,13 @@ export const Hero: React.FC = () => {
         },
       });
 
-      // 1. Mars video scales 1.0 -> 1.08 and drifts subtly downward/right
+      // 1. Mars video scales 1.0 -> 1.08 with central horizon depth
       if (videoRef.current) {
         scrollTl.to(
           videoRef.current,
           {
             scale: 1.08,
-            xPercent: 3,
-            yPercent: 6,
+            yPercent: 4,
             ease: "none",
           },
           0
@@ -196,7 +222,7 @@ export const Hero: React.FC = () => {
         scrollTl.to(
           contentWrapperRef.current,
           {
-            y: -80,
+            y: -70,
             opacity: 0,
             ease: "power2.inOut",
           },
@@ -204,7 +230,27 @@ export const Hero: React.FC = () => {
         );
       }
 
-      // 3. Scroll indicator fades early
+      // 3. Floating chips parallax outward on scroll
+      scrollTl.to(
+        ".hero-floating-chip-left",
+        {
+          x: -40,
+          opacity: 0,
+          ease: "power1.out",
+        },
+        0
+      );
+      scrollTl.to(
+        ".hero-floating-chip-right",
+        {
+          x: 40,
+          opacity: 0,
+          ease: "power1.out",
+        },
+        0
+      );
+
+      // 4. Scroll indicator fades early
       if (scrollIndicatorRef.current) {
         scrollTl.to(
           scrollIndicatorRef.current,
@@ -217,7 +263,7 @@ export const Hero: React.FC = () => {
         );
       }
 
-      // 4. Subtle header background transition as user scrolls past 15%
+      // 5. Subtle header background transition as user scrolls past 15%
       if (navRef.current) {
         ScrollTrigger.create({
           trigger: containerRef.current,
@@ -249,15 +295,15 @@ export const Hero: React.FC = () => {
   return (
     <section
       ref={containerRef}
-      className="relative w-full h-[100svh] min-h-[640px] overflow-hidden bg-proof-black text-proof-offwhite flex flex-col justify-between"
+      className="relative w-full h-[100svh] min-h-[680px] overflow-hidden bg-proof-black text-proof-offwhite flex flex-col justify-between"
     >
       {/* Navigation */}
       <HeroNavigation navRef={navRef} />
 
-      {/* Cinematic Mars Video Background */}
+      {/* Cinematic Mars Central Celestial Sphere Background */}
       <HeroBackground videoRef={videoRef} videoContainerRef={videoContainerRef} />
 
-      {/* Hero Typographic Content (Left-Third, Large Negative Space) */}
+      {/* Hero Typographic Content (Central Horizon Composition with Floating Verification Pills) */}
       <HeroContent
         contentWrapperRef={contentWrapperRef}
         eyebrowRef={eyebrowRef}
@@ -267,7 +313,7 @@ export const Hero: React.FC = () => {
         ctaGroupRef={ctaGroupRef}
       />
 
-      {/* Micro UI: SCROLL & SYS // 01 */}
+      {/* Micro UI: Verification Protocols & SCROLL */}
       <HeroMicroUI scrollIndicatorRef={scrollIndicatorRef} />
     </section>
   );

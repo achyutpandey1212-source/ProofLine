@@ -28,15 +28,39 @@ export const HeroNavigation: React.FC<HeroNavigationProps> = ({ navRef }) => {
           <span>PROOFLINE</span>
         </Link>
 
-        {/* Minimal Right Action: Console (8-10px rounded geometry) */}
-        <nav className="flex items-center font-display">
-          <Link
-            to={user ? "/cases" : "/login"}
-            className="text-xs sm:text-[13px] tracking-[0.06em] font-medium text-proof-offwhite/85 hover:text-proof-offwhite px-4 py-2 border border-proof-offwhite/20 hover:border-proof-offwhite/45 transition-all duration-200 bg-proof-charcoal/50 backdrop-blur-[2px] rounded-[9px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-proof-vermillion"
-          >
-            Console
-          </Link>
+        {/* Minimal Navigation links inspired by reference: subtle editorial text */}
+        <nav className="hidden md:flex items-center gap-8 font-display text-[13px] text-proof-gray font-normal tracking-wide">
+          <a href="#how-it-works" className="hover:text-proof-offwhite transition-colors duration-200">
+            System
+          </a>
+          <a href="#evidence" className="hover:text-proof-offwhite transition-colors duration-200">
+            Evidence
+          </a>
+          <a href="#tolerance" className="hover:text-proof-offwhite transition-colors duration-200">
+            Tolerance Engine
+          </a>
+          <a href="#docs" className="hover:text-proof-offwhite transition-colors duration-200">
+            Specs
+          </a>
         </nav>
+
+        {/* Minimal Right Action: Sign In & Console / Get Started */}
+        <div className="flex items-center gap-4 sm:gap-6 font-display">
+          {!user && (
+            <Link
+              to="/login"
+              className="text-xs sm:text-[13px] tracking-wide text-proof-gray hover:text-proof-offwhite transition-colors font-medium hidden sm:inline-block"
+            >
+              Sign In
+            </Link>
+          )}
+          <Link
+            to={user ? "/cases" : "/cases"}
+            className="text-xs sm:text-[13px] tracking-[0.06em] font-medium text-proof-offwhite px-4 py-2 border border-proof-offwhite/20 hover:border-proof-offwhite/45 transition-all duration-200 bg-proof-charcoal/60 backdrop-blur-sm rounded-[10px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-proof-vermillion"
+          >
+            {user ? "Console" : "Get started"}
+          </Link>
+        </div>
       </div>
     </header>
   );
