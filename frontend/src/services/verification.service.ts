@@ -35,5 +35,20 @@ export class VerificationClientService {
       { scenario }
     );
   }
+
+  /**
+   * Downloads the compiled Proof Packet PDF as a Blob.
+   */
+  public static async downloadProofPacketPdf(caseId: string): Promise<Blob> {
+    return ApiClient.getBlob(`/cases/${caseId}/proof-packet/pdf`);
+  }
+
+  /**
+   * Fetches structured Proof Packet metadata.
+   */
+  public static async getProofPacketMetadata(caseId: string): Promise<Record<string, unknown>> {
+    return ApiClient.post<Record<string, unknown>>(`/cases/${caseId}/proof-packet`);
+  }
 }
+
 

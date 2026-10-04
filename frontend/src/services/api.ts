@@ -108,4 +108,26 @@ export class ApiClient {
       body: body instanceof FormData ? body : JSON.stringify(body),
     });
   }
+
+  /**
+   * Downloads binary file (e.g. PDF proof packet) with authentication header
+   */
+  public static async getBlob(endpoint: string): Promise<Blob> {
+    const authHeaders = await this.getAuthHeader();
+    const url = `${this.baseUrl}${endpoint}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        ...authHeaders,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to download file: ${response.statusText || response.status}`);
+    }
+
+    return response.blob();
+  }
 }
+

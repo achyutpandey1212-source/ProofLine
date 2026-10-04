@@ -27,11 +27,13 @@ import {
   Sparkles,
   Network,
   FlaskConical,
+  FileCheck,
 } from "lucide-react";
 import { DemoManager } from "../demo/demoRunner";
 import { ProofGraphModal } from "../components/graph/ProofGraphModal";
 import { SimulationBanner } from "../components/SimulationBanner";
 import { SimulationModal } from "../components/simulation/SimulationModal";
+import { ProofPacketModal } from "../components/proofPacket/ProofPacketModal";
 import { useSimulation } from "../context/SimulationContext";
 
 const EVIDENCE_TYPE_OPTIONS = [
@@ -50,6 +52,7 @@ export const CaseDetailPage: React.FC = () => {
 
   const { isSimulating, simulationResult } = useSimulation();
   const [showSimModal, setShowSimModal] = useState(false);
+  const [showPacketModal, setShowPacketModal] = useState(false);
 
   // State
   const [caseItem, setCaseItem] = useState<CaseItem | null>(null);
@@ -267,6 +270,15 @@ export const CaseDetailPage: React.FC = () => {
                 >
                   <Network className="w-3.5 h-3.5 text-[#FF6D29]" />
                   <span>Proof Graph</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPacketModal(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs font-display text-white transition cursor-pointer"
+                  title="Export auditable Proof Packet PDF"
+                >
+                  <FileCheck className="w-3.5 h-3.5 text-[#FF6D29]" />
+                  <span>Proof Packet</span>
                 </button>
                 <Link
                   to={`/cases/${caseId}/verification`}
@@ -638,6 +650,17 @@ export const CaseDetailPage: React.FC = () => {
           caseId={caseId!}
           isOpen={showSimModal}
           onClose={() => setShowSimModal(false)}
+        />
+      )}
+
+      {/* Auditable Proof Packet Modal */}
+      {caseItem && (
+        <ProofPacketModal
+          caseId={caseId!}
+          transactionId={caseItem.transactionId}
+          isOpen={showPacketModal}
+          onClose={() => setShowPacketModal(false)}
+          isSimulated={isSimulating}
         />
       )}
     </GlowBackground>

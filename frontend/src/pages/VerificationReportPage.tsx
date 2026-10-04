@@ -20,14 +20,16 @@ import gsap from "gsap";
 import { ProofGraphModal } from "../components/graph/ProofGraphModal";
 import { SimulationBanner } from "../components/SimulationBanner";
 import { SimulationModal } from "../components/simulation/SimulationModal";
+import { ProofPacketModal } from "../components/proofPacket/ProofPacketModal";
 import { useSimulation } from "../context/SimulationContext";
-import { FlaskConical } from "lucide-react";
+import { FlaskConical, FileCheck } from "lucide-react";
 
 export const VerificationReportPage: React.FC = () => {
   const { caseId } = useParams<{ caseId: string }>();
 
   const { isSimulating, simulationResult } = useSimulation();
   const [showSimModal, setShowSimModal] = useState(false);
+  const [showPacketModal, setShowPacketModal] = useState(false);
 
   const [caseItem, setCaseItem] = useState<CaseItem | null>(null);
   const [evidenceList, setEvidenceList] = useState<EvidenceItem[]>([]);
@@ -251,6 +253,16 @@ export const VerificationReportPage: React.FC = () => {
               >
                 <span>Risk: {effectiveRisk}</span>
               </span>
+
+              {/* Export Proof Packet Action Button */}
+              <button
+                type="button"
+                onClick={() => setShowPacketModal(true)}
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium shadow-[0_2px_14px_rgba(255,109,41,0.3)] hover:shadow-[0_2px_20px_rgba(255,109,41,0.45)] transition-all cursor-pointer"
+              >
+                <FileCheck className="w-3.5 h-3.5" />
+                <span>Export Proof Packet</span>
+              </button>
 
               {/* View Proof Graph Button */}
               <button
@@ -575,6 +587,17 @@ export const VerificationReportPage: React.FC = () => {
           caseId={caseId!}
           isOpen={showSimModal}
           onClose={() => setShowSimModal(false)}
+        />
+      )}
+
+      {/* Proof Packet Export Modal */}
+      {caseItem && (
+        <ProofPacketModal
+          caseId={caseId!}
+          transactionId={caseItem.transactionId}
+          isOpen={showPacketModal}
+          onClose={() => setShowPacketModal(false)}
+          isSimulated={isSimulating}
         />
       )}
     </GlowBackground>
