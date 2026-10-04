@@ -3,12 +3,14 @@ import { Link } from "react-router-dom";
 import { Header } from "../components/Header";
 import { CaseService } from "../services/case.service";
 import { CaseItem } from "../types";
-import { Plus, ArrowRight, AlertCircle, FileSpreadsheet } from "lucide-react";
+import { Plus, ArrowRight, AlertCircle, FileSpreadsheet, Sparkles } from "lucide-react";
+import { FullDemoModal } from "../demo/FullDemoModal";
 
 export const CasesListPage: React.FC = () => {
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showDemoModal, setShowDemoModal] = useState(false);
 
   useEffect(() => {
     loadCases();
@@ -70,13 +72,23 @@ export const CasesListPage: React.FC = () => {
               Active commercial transactions, weight payloads, and compliance records.
             </p>
           </div>
-          <Link
-            to="/cases/new"
-            className="inline-flex items-center gap-2 px-4 py-2 border border-black bg-black text-white hover:bg-white hover:text-black text-sm font-medium transition cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create Case</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowDemoModal(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 border border-black bg-gray-50 hover:bg-black hover:text-white text-xs font-mono font-bold transition cursor-pointer"
+              title="Executes official demo scenario: creates case EW-104, uploads synthetic evidence, and runs verification"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>RUN FULL DEMO</span>
+            </button>
+            <Link
+              to="/cases/new"
+              className="inline-flex items-center gap-2 px-4 py-2 border border-black bg-black text-white hover:bg-white hover:text-black text-xs font-mono font-bold transition cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>CREATE CASE</span>
+            </Link>
+          </div>
         </div>
 
         {error && (
@@ -180,6 +192,14 @@ export const CasesListPage: React.FC = () => {
           </div>
         )}
       </main>
+
+      <FullDemoModal
+        isOpen={showDemoModal}
+        onClose={() => {
+          setShowDemoModal(false);
+          loadCases();
+        }}
+      />
     </div>
   );
 };

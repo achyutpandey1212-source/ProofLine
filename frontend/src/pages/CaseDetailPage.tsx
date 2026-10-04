@@ -23,7 +23,9 @@ import {
   Scale,
   RefreshCw,
   ExternalLink,
+  Sparkles,
 } from "lucide-react";
+import { DemoManager } from "../demo/demoRunner";
 
 export const CaseDetailPage: React.FC = () => {
   const { caseId } = useParams<{ caseId: string }>();
@@ -148,6 +150,26 @@ export const CaseDetailPage: React.FC = () => {
       setCaseItem(updatedCase);
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Evidence upload failed.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleUploadDemoEvidence = async () => {
+    if (!caseId) return;
+    try {
+      setUploading(true);
+      setUploadError(null);
+
+      await DemoManager.uploadAllDemoEvidence(caseId);
+
+      const updatedEvidence = await EvidenceService.listEvidence(caseId);
+      setEvidenceList(updatedEvidence);
+
+      const updatedCase = await CaseService.getCase(caseId);
+      setCaseItem(updatedCase);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Failed to load demo evidence.");
     } finally {
       setUploading(false);
     }
@@ -478,12 +500,24 @@ export const CaseDetailPage: React.FC = () => {
 
         {/* Section B & C: Evidence Upload & List */}
         <div className="border border-black p-6 bg-white space-y-6">
-          <div className="border-b border-black pb-4">
-            <div className="font-mono text-xs text-gray-500 mb-1">EVIDENCE_CATALOG</div>
-            <h2 className="text-base font-bold text-black uppercase font-mono">Document Intake & Provenance</h2>
-            <p className="text-xs text-gray-600 mt-0.5">
-              Attach weighing slips, scale photos, and commercial invoices for deterministic verification.
-            </p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-black pb-4">
+            <div>
+              <div className="font-mono text-xs text-gray-500 mb-1">EVIDENCE_CATALOG</div>
+              <h2 className="text-base font-bold text-black uppercase font-mono">Document Intake & Provenance</h2>
+              <p className="text-xs text-gray-600 mt-0.5">
+                Attach weighing slips, scale photos, and commercial invoices for deterministic verification.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleUploadDemoEvidence}
+              disabled={uploading}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-black bg-gray-50 hover:bg-black hover:text-white disabled:opacity-50 text-xs font-mono font-bold transition cursor-pointer"
+              title="Uploads synthetic invoice and 3 scale images (184.6 kg, 193.2 kg, 177.8 kg)"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>LOAD DEMO EVIDENCE (4 FILES)</span>
+            </button>
           </div>
 
           {/* Upload Form */}

@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Header } from "../components/Header";
 import { CaseService } from "../services/case.service";
-import { ArrowLeft, Save, AlertCircle } from "lucide-react";
+import { OFFICIAL_DEMO_SCENARIO } from "../demo/demoScenario";
+import { ArrowLeft, Save, AlertCircle, Sparkles } from "lucide-react";
 
 export const CreateCasePage: React.FC = () => {
   const navigate = useNavigate();
@@ -28,13 +29,13 @@ export const CreateCasePage: React.FC = () => {
 
   const handleFillDemoScenario = () => {
     setFormData({
-      transactionId: "EW-104",
-      partnerName: "ABC Recycling Pvt Ltd",
-      material: "PET Plastic Flakes",
-      claimedQuantity: "560",
-      unit: "kg",
-      organization: "Apex Polymer Solutions",
-      notes: "Demo scenario: Claimed 560 kg verified against weighing receipts.",
+      transactionId: OFFICIAL_DEMO_SCENARIO.caseData.transactionId,
+      partnerName: OFFICIAL_DEMO_SCENARIO.caseData.partnerName,
+      material: OFFICIAL_DEMO_SCENARIO.caseData.material,
+      claimedQuantity: String(OFFICIAL_DEMO_SCENARIO.caseData.claimedQuantity),
+      unit: OFFICIAL_DEMO_SCENARIO.caseData.unit,
+      organization: OFFICIAL_DEMO_SCENARIO.caseData.organization,
+      notes: OFFICIAL_DEMO_SCENARIO.caseData.notes,
     });
   };
 
@@ -99,9 +100,11 @@ export const CreateCasePage: React.FC = () => {
           <button
             type="button"
             onClick={handleFillDemoScenario}
-            className="px-2.5 py-1 text-xs font-mono border border-black bg-white hover:bg-black hover:text-white transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-mono font-bold border border-black bg-gray-50 hover:bg-black hover:text-white transition cursor-pointer"
+            title="Populates official scenario fields (Transaction EW-104, 560 kg claimed PET flakes)"
           >
-            LOAD_DEMO_VALUES (EW-104)
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>LOAD DEMO CASE (EW-104)</span>
           </button>
         </div>
 
