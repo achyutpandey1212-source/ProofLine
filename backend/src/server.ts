@@ -7,6 +7,7 @@ import { connectDatabase, disconnectDatabase } from "./config/database";
 import { initializeFirebase } from "./config/firebase";
 import { logProviderConfiguration } from "./services/aiProvider.service";
 import healthRoutes from "./routes/health.routes";
+import caseRoutes from "./routes/case.routes";
 import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
 import { logger } from "./utils/logger";
 
@@ -49,6 +50,7 @@ export const createApp = (): Express => {
 
   // Mount API & System Routes
   app.use(healthRoutes);
+  app.use(caseRoutes);
 
   // 404 & Centralized Error Handlers
   app.use(notFoundHandler);
