@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { GlowBackground } from "../components/ui/GlowBackground";
 import { CustomSelect } from "../components/ui/CustomSelect";
@@ -11,7 +11,6 @@ import {
   EvidenceItem,
   EvidenceType,
   VerificationReport,
-  WorkflowProgress,
 } from "../types";
 import {
   ArrowLeft,
@@ -47,30 +46,22 @@ export const CaseDetailPage: React.FC = () => {
   const [caseItem, setCaseItem] = useState<CaseItem | null>(null);
   const [evidenceList, setEvidenceList] = useState<EvidenceItem[]>([]);
   const [report, setReport] = useState<VerificationReport | null>(null);
-  const [workflowProgress, setWorkflowProgress] = useState<WorkflowProgress | null>(null);
 
   // UX states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [verifying, setVerifying] = useState(false);
 
   // Upload Form
   const [selectedType, setSelectedType] = useState<EvidenceType>("SCALE_IMAGE");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Polling ref
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
-
   useEffect(() => {
     if (caseId) {
       loadInitialData();
     }
-    return () => {
-      stopPolling();
-    };
   }, [caseId]);
 
   const loadInitialData = async () => {
@@ -99,42 +90,6 @@ export const CaseDetailPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const stopPolling = () => {
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
-    }
-  };
-
-  const startPollingProgress = () => {
-    if (!caseId) return;
-    stopPolling();
-
-    pollingRef.current = setInterval(async () => {
-      try {
-        const progress = await VerificationClientService.getStatus(caseId);
-        setWorkflowProgress(progress);
-
-        if (progress.status === "COMPLETED" || progress.status === "FAILED") {
-          stopPolling();
-          setVerifying(false);
-
-          const updatedCase = await CaseService.getCase(caseId);
-          setCaseItem(updatedCase);
-          const updatedEvidence = await EvidenceService.listEvidence(caseId);
-          setEvidenceList(updatedEvidence);
-
-          if (progress.status === "COMPLETED") {
-            const reportData = await VerificationClientService.getReport(caseId);
-            setReport(reportData);
-          }
-        }
-      } catch {
-        // Transient error during polling - keep polling
-      }
-    }, 1500);
   };
 
   const handleFileUpload = async (e: React.FormEvent) => {
@@ -184,47 +139,11 @@ export const CaseDetailPage: React.FC = () => {
     }
   };
 
-  const handleStartVerification = async () => {
-    if (!caseId) return;
-    try {
-      setVerifying(true);
-      setError(null);
-      await VerificationClientService.startVerification(caseId);
-      startPollingProgress();
-    } catch (err) {
-      setVerifying(false);
-      setError(err instanceof Error ? err.message : "Failed to start verification.");
-    }
-  };
+  const navigate = useNavigate();
 
-  const getWorkflowStepLabel = (step?: string) => {
-    switch (step) {
-      case "LOAD_CASE":
-      case "INIT":
-        return "Initializing verification context...";
-      case "LOAD_EVIDENCE":
-      case "EVIDENCE_READINESS":
-        return "Collecting uploaded documents...";
-      case "EXTRACTION":
-        return workflowProgress && workflowProgress.totalEvidence > 0
-          ? `Reviewing evidence (${workflowProgress.processedEvidence} of ${workflowProgress.totalEvidence} processed)...`
-          : "Reviewing documents...";
-      case "EXTRACTION_VALIDATION":
-        return "Validating factual records...";
-      case "NORMALIZATION":
-      case "VERIFICATION":
-        return "Reconciling weights and cross-checking records...";
-      case "FINDINGS":
-      case "RISK_ASSESSMENT":
-      case "FINAL_PERSISTENCE":
-        return "Finalizing verification report...";
-      case "COMPLETED":
-        return "Verification completed successfully.";
-      case "FAILED":
-        return "Verification could not be completed.";
-      default:
-        return "Verification in progress...";
-    }
+  const handleStartVerification = () => {
+    if (!caseId) return;
+    navigate(`/cases/${caseId}/verify`);
   };
 
   const renderStatusBadge = (status?: string) => {
@@ -316,22 +235,22 @@ export const CaseDetailPage: React.FC = () => {
           </Link>
 
           <div className="flex items-center gap-3">
+            {report && (
+              <Link
+                to={`/cases/${caseId}/verification`}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs font-display text-white transition"
+              >
+                <FileText className="w-3.5 h-3.5 text-[#FF6D29]" />
+                <span>View Full Verification Report</span>
+              </Link>
+            )}
             <button
               onClick={handleStartVerification}
-              disabled={verifying || evidenceList.length === 0}
+              disabled={evidenceList.length === 0}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white disabled:opacity-40 text-xs font-display font-medium shadow-[0_0_20px_rgba(255,109,41,0.35)] hover:shadow-[0_0_28px_rgba(255,109,41,0.55)] transition-all cursor-pointer"
             >
-              {verifying ? (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Verifying Evidence...</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>Run Verification Engine</span>
-                </>
-              )}
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>{report ? "Re-Run Verification" : "Run Verification Engine"}</span>
             </button>
           </div>
         </div>
@@ -403,30 +322,6 @@ export const CaseDetailPage: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Live Verification Progress Panel */}
-        {verifying && (
-          <div className="rounded-3xl bg-gradient-to-r from-[#1c1418] to-[#141215] border border-[#FF6D29]/30 p-5 shadow-[0_16px_36px_rgba(255,109,41,0.1)] backdrop-blur-xl">
-            <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-white/10">
-              <div className="flex items-center gap-2 font-display text-xs font-medium text-[#FFA776]">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#FF6D29]" />
-                <span>Verification Engine Active</span>
-              </div>
-              <span className="text-[11px] font-mono text-[#BABABA]">Live Pipeline</span>
-            </div>
-            <p className="text-xs font-display text-white">
-              {getWorkflowStepLabel(workflowProgress?.step)}
-            </p>
-            {workflowProgress && (
-              <div className="mt-3 rounded-xl bg-black/40 border border-white/[0.06] p-2.5 flex items-center justify-between text-xs font-mono text-[#BABABA]">
-                <span>Progress: {workflowProgress.processedEvidence} / {workflowProgress.totalEvidence} processed</span>
-                {workflowProgress.retryCount > 0 && (
-                  <span>Retries: {workflowProgress.retryCount}</span>
-                )}
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Section B: Verification Result & Findings (When Completed) */}
         {report && (

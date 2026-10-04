@@ -7,6 +7,8 @@ import { LoginPage } from "./pages/LoginPage";
 import { CasesListPage } from "./pages/CasesListPage";
 import { CreateCasePage } from "./pages/CreateCasePage";
 import { CaseDetailPage } from "./pages/CaseDetailPage";
+import { VerificationFlowPage } from "./pages/VerificationFlowPage";
+import { VerificationReportPage } from "./pages/VerificationReportPage";
 
 export const App: React.FC = () => {
   return (
@@ -36,6 +38,22 @@ export const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <CaseDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cases/:caseId/verify"
+            element={
+              <ProtectedRoute>
+                <VerificationFlowPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cases/:caseId/verification"
+            element={
+              <ProtectedRoute>
+                <VerificationReportPage />
               </ProtectedRoute>
             }
           />
