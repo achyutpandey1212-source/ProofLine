@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Header } from "../components/Header";
+import { Navbar } from "../components/Navbar";
+import { GlowBackground } from "../components/ui/GlowBackground";
 import { CaseService } from "../services/case.service";
 import { OFFICIAL_DEMO_SCENARIO } from "../demo/demoScenario";
-import { ArrowLeft, Save, AlertCircle, Sparkles } from "lucide-react";
+import { CustomSelect } from "../components/ui/CustomSelect";
+import { NumberInput } from "../components/ui/NumberInput";
+import { ArrowLeft, Save, AlertCircle, Sparkles, RefreshCw } from "lucide-react";
 
 export const CreateCasePage: React.FC = () => {
   const navigate = useNavigate();
@@ -84,50 +87,58 @@ export const CreateCasePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans">
-      <Header />
+    <GlowBackground className="flex flex-col min-h-screen">
+      {/* Reusable floating cylindrical glassmorphism Navbar */}
+      <Navbar />
 
-      <main className="max-w-2xl w-full mx-auto px-4 py-8 flex-1">
-        <div className="mb-6 flex items-center justify-between pb-4 border-b border-black">
+      <main className="max-w-3xl w-full mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-20 flex-1">
+        {/* Navigation back and demo pre-fill */}
+        <div className="mb-8 flex items-center justify-between pb-4 border-b border-white/10">
           <Link
             to="/cases"
-            className="inline-flex items-center gap-1.5 text-xs font-mono text-gray-700 hover:text-black transition"
+            className="inline-flex items-center gap-2 text-xs font-display text-[#BABABA] hover:text-white transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>BACK_TO_CASES</span>
+            <span>Back to Cases</span>
           </Link>
 
           <button
             type="button"
             onClick={handleFillDemoScenario}
-            className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-mono font-bold border border-black bg-gray-50 hover:bg-black hover:text-white transition cursor-pointer"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-display text-[#FFA776] hover:text-white transition-all cursor-pointer"
             title="Populates official scenario fields (Transaction EW-104, 560 kg claimed PET flakes)"
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>LOAD DEMO CASE (EW-104)</span>
+            <Sparkles className="w-3.5 h-3.5 text-[#FF6D29]" />
+            <span>Load Demo (EW-104)</span>
           </button>
         </div>
 
-        <div className="border border-black p-6 bg-white">
-          <div className="mb-6">
-            <div className="font-mono text-xs text-gray-500 mb-1">INTAKE_FORM</div>
-            <h1 className="text-xl font-bold text-black tracking-tight">Create Verification Case</h1>
-            <p className="text-xs text-gray-600 mt-1">
-              Initialize a commercial transaction envelope with declared values before attaching evidence documents.
+        {/* Form Container */}
+        <div className="rounded-3xl bg-[#141215]/85 border border-white/10 p-7 sm:p-9 shadow-[0_24px_50px_rgba(0,0,0,0.7)] backdrop-blur-xl">
+          <div className="mb-8">
+            <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-white leading-tight">
+              Create{" "}
+              <span className="font-serif italic font-normal text-[#FFA776] bg-gradient-to-r from-[#FFD2B8] via-[#FF8A50] to-[#FF6D29] bg-clip-text text-transparent">
+                Verification Case
+              </span>
+            </h1>
+            <p className="font-display text-xs sm:text-sm text-[#BABABA] mt-1.5">
+              Declare transaction baseline before attaching scale and invoice evidence
             </p>
           </div>
 
           {error && (
-            <div className="mb-6 p-3 border border-black bg-gray-50 flex items-center gap-2 text-xs font-mono">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              <span>[ERROR]: {error}</span>
+            <div className="mb-6 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center gap-2.5 text-xs text-red-300 font-display">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 text-xs font-sans">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-5 text-xs font-display">
+            {/* Row 1: Transaction ID & Partner */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
               <div>
-                <label className="block font-mono text-gray-700 mb-1 uppercase">
+                <label className="block text-xs font-display text-[#BABABA] mb-1.5 font-medium">
                   Transaction ID *
                 </label>
                 <input
@@ -136,13 +147,13 @@ export const CreateCasePage: React.FC = () => {
                   value={formData.transactionId}
                   onChange={handleChange}
                   placeholder="e.g. EW-104"
-                  className="w-full px-3 py-2 border border-black bg-white text-black font-mono text-xs"
+                  className="w-full h-11 px-4 rounded-xl bg-black/50 border border-white/10 focus:border-[#FF6D29] focus:outline-none text-xs text-white placeholder-[#BABABA]/30 font-display transition"
                   required
                 />
               </div>
 
               <div>
-                <label className="block font-mono text-gray-700 mb-1 uppercase">
+                <label className="block text-xs font-display text-[#BABABA] mb-1.5 font-medium">
                   Partner / Counterparty *
                 </label>
                 <input
@@ -151,15 +162,16 @@ export const CreateCasePage: React.FC = () => {
                   value={formData.partnerName}
                   onChange={handleChange}
                   placeholder="e.g. ABC Recycling Pvt Ltd"
-                  className="w-full px-3 py-2 border border-black bg-white text-black text-xs"
+                  className="w-full h-11 px-4 rounded-xl bg-black/50 border border-white/10 focus:border-[#FF6D29] focus:outline-none text-xs text-white placeholder-[#BABABA]/30 font-display transition"
                   required
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Row 2: Material, Claimed Quantity, Unit */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
               <div className="sm:col-span-1">
-                <label className="block font-mono text-gray-700 mb-1 uppercase">
+                <label className="block text-xs font-display text-[#BABABA] mb-1.5 font-medium">
                   Material *
                 </label>
                 <input
@@ -168,47 +180,45 @@ export const CreateCasePage: React.FC = () => {
                   value={formData.material}
                   onChange={handleChange}
                   placeholder="e.g. PET Plastic Flakes"
-                  className="w-full px-3 py-2 border border-black bg-white text-black text-xs"
+                  className="w-full h-11 px-4 rounded-xl bg-black/50 border border-white/10 focus:border-[#FF6D29] focus:outline-none text-xs text-white placeholder-[#BABABA]/30 font-display transition"
                   required
                 />
               </div>
 
               <div>
-                <label className="block font-mono text-gray-700 mb-1 uppercase">
+                <label className="block text-xs font-display text-[#BABABA] mb-1.5 font-medium">
                   Claimed Quantity *
                 </label>
-                <input
-                  type="number"
-                  step="any"
+                <NumberInput
                   name="claimedQuantity"
                   value={formData.claimedQuantity}
                   onChange={handleChange}
                   placeholder="e.g. 560"
-                  className="w-full px-3 py-2 border border-black bg-white text-black font-mono text-xs"
+                  step={10}
                   required
                 />
               </div>
 
               <div>
-                <label className="block font-mono text-gray-700 mb-1 uppercase">
+                <label className="block text-xs font-display text-[#BABABA] mb-1.5 font-medium">
                   Unit *
                 </label>
-                <select
-                  name="unit"
+                <CustomSelect
+                  options={[
+                    { value: "kg", label: "kg (Kilogram)" },
+                    { value: "MT", label: "MT (Metric Ton)" },
+                    { value: "lbs", label: "lbs (Pounds)" },
+                    { value: "units", label: "units (Pieces)" },
+                  ]}
                   value={formData.unit}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-black bg-white text-black font-mono text-xs"
-                >
-                  <option value="kg">kg</option>
-                  <option value="MT">MT (Metric Ton)</option>
-                  <option value="lbs">lbs</option>
-                  <option value="units">units</option>
-                </select>
+                  onChange={(val) => setFormData((prev) => ({ ...prev, unit: val }))}
+                />
               </div>
             </div>
 
+            {/* Row 3: Issuing Organization */}
             <div>
-              <label className="block font-mono text-gray-700 mb-1 uppercase">
+              <label className="block text-xs font-display text-[#BABABA] mb-1.5 font-medium">
                 Issuing Organization (Optional)
               </label>
               <input
@@ -217,12 +227,13 @@ export const CreateCasePage: React.FC = () => {
                 value={formData.organization}
                 onChange={handleChange}
                 placeholder="e.g. Apex Polymer Solutions"
-                className="w-full px-3 py-2 border border-gray-400 bg-white text-black text-xs"
+                className="w-full h-11 px-4 rounded-xl bg-black/50 border border-white/10 focus:border-[#FF6D29] focus:outline-none text-xs text-white placeholder-[#BABABA]/30 font-display transition"
               />
             </div>
 
+            {/* Row 4: Notes */}
             <div>
-              <label className="block font-mono text-gray-700 mb-1 uppercase">
+              <label className="block text-xs font-display text-[#BABABA] mb-1.5 font-medium">
                 Notes & Context (Optional)
               </label>
               <textarea
@@ -230,30 +241,40 @@ export const CreateCasePage: React.FC = () => {
                 rows={3}
                 value={formData.notes}
                 onChange={handleChange}
-                placeholder="Reference delivery note number, vehicle license, or intake comments"
-                className="w-full px-3 py-2 border border-gray-400 bg-white text-black text-xs"
+                placeholder="Delivery note number, vehicle license, or intake notes"
+                className="w-full p-4 rounded-xl bg-black/50 border border-white/10 focus:border-[#FF6D29] focus:outline-none text-xs text-white placeholder-[#BABABA]/30 font-display transition resize-none"
               />
             </div>
 
-            <div className="pt-4 border-t border-gray-300 flex items-center justify-end gap-3">
+            {/* Action Buttons */}
+            <div className="pt-6 border-t border-white/10 flex items-center justify-end gap-3">
               <Link
                 to="/cases"
-                className="px-4 py-2 border border-gray-400 text-black hover:bg-gray-100 transition text-xs font-mono"
+                className="px-4 py-2.5 rounded-xl text-xs font-display text-[#BABABA] hover:text-white hover:bg-white/[0.04] transition"
               >
-                CANCEL
+                Cancel
               </Link>
               <button
                 type="submit"
                 disabled={submitting}
-                className="inline-flex items-center gap-2 px-5 py-2 border border-black bg-black text-white hover:bg-white hover:text-black transition text-xs font-mono cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium shadow-[0_0_20px_rgba(255,109,41,0.35)] hover:shadow-[0_0_28px_rgba(255,109,41,0.55)] transition-all cursor-pointer disabled:opacity-50"
               >
-                <Save className="w-3.5 h-3.5" />
-                <span>{submitting ? "RECORDING..." : "SAVE & PROCEED"}</span>
+                {submitting ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-3.5 h-3.5" />
+                    <span>Save & Proceed</span>
+                  </>
+                )}
               </button>
             </div>
           </form>
         </div>
       </main>
-    </div>
+    </GlowBackground>
   );
 };
