@@ -172,7 +172,7 @@ export const VerificationReportPage: React.FC = () => {
               </h1>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2.5">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-medium">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>Verified</span>
@@ -186,6 +186,14 @@ export const VerificationReportPage: React.FC = () => {
               >
                 <span>Risk: {caseItem.riskLevel || "LOW"}</span>
               </span>
+              <button
+                type="button"
+                onClick={() => setShowGraphModal(true)}
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#161316] hover:bg-[#1f1a1f] border border-[#FF6D29]/40 hover:border-[#FF6D29]/70 text-xs font-display font-medium text-[#FFA776] hover:text-white transition-all shadow-[0_2px_12px_rgba(255,109,41,0.15)] cursor-pointer"
+              >
+                <Network className="w-3.5 h-3.5 text-[#FF6D29]" />
+                <span>View Proof Graph</span>
+              </button>
             </div>
           </div>
 

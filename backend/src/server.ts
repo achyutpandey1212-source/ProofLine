@@ -20,14 +20,23 @@ export const createApp = (): Express => {
   app.use(helmet());
 
   // Controlled CORS configuration
-  const allowedOrigins = [env.FRONTEND_URL];
+  const configuredOrigins = env.FRONTEND_URL.split(",").map((url) => url.trim().replace(/\/$/, ""));
   app.use(
     cors({
       origin: (origin, callback) => {
-        // Allow requests with no origin (e.g. mobile apps, curl, server-to-server) or matching frontend
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (!origin) {
+          return callback(null, true);
+        }
+        const cleanOrigin = origin.replace(/\/$/, "");
+        const isAllowed =
+          configuredOrigins.includes(cleanOrigin) ||
+          configuredOrigins.includes("*") ||
+          (cleanOrigin.endsWith(".vercel.app") && configuredOrigins.some((o) => o.includes("vercel.app")));
+
+        if (isAllowed) {
           callback(null, true);
         } else {
+          logger.warn(`CORS blocked for origin: ${origin}`);
           callback(new Error(`Origin ${origin} not allowed by CORS policy`));
         }
       },
