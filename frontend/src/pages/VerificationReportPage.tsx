@@ -18,9 +18,16 @@ import {
 } from "lucide-react";
 import gsap from "gsap";
 import { ProofGraphModal } from "../components/graph/ProofGraphModal";
+import { SimulationBanner } from "../components/SimulationBanner";
+import { SimulationModal } from "../components/simulation/SimulationModal";
+import { useSimulation } from "../context/SimulationContext";
+import { FlaskConical } from "lucide-react";
 
 export const VerificationReportPage: React.FC = () => {
   const { caseId } = useParams<{ caseId: string }>();
+
+  const { isSimulating, simulationResult } = useSimulation();
+  const [showSimModal, setShowSimModal] = useState(false);
 
   const [caseItem, setCaseItem] = useState<CaseItem | null>(null);
   const [evidenceList, setEvidenceList] = useState<EvidenceItem[]>([]);
@@ -124,8 +131,25 @@ export const VerificationReportPage: React.FC = () => {
     );
   }
 
-  const isLowRisk = caseItem.riskLevel === "LOW";
-  const variance = report.calculatedValues.variancePercentage ?? 0;
+  // Derive effective report and case context based on whether simulation is active
+  const effectiveReport: VerificationReport = isSimulating && simulationResult
+    ? {
+        overallRisk: simulationResult.verification.overallRisk,
+        status: simulationResult.verification.status,
+        summary: simulationResult.verification.summary,
+        calculatedValues: simulationResult.verification.calculatedValues,
+        ruleResults: simulationResult.verification.ruleResults,
+        findings: simulationResult.verification.findings,
+        verifiedAt: simulationResult.verification.verifiedAt,
+      }
+    : report;
+
+  const effectiveRisk = isSimulating && simulationResult
+    ? simulationResult.verification.overallRisk
+    : caseItem.riskLevel || "LOW";
+
+  const isLowRisk = effectiveRisk === "LOW";
+  const variance = effectiveReport.calculatedValues.variancePercentage ?? 0;
   const tolerancePassed = Math.abs(variance) <= 2.0;
 
   // Breakdown scale documents vs invoice
@@ -134,6 +158,7 @@ export const VerificationReportPage: React.FC = () => {
 
   return (
     <GlowBackground className="min-h-screen flex flex-col">
+      <SimulationBanner />
       <Navbar />
 
       <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 pt-2 pb-24 flex-1 space-y-8 font-display">
@@ -155,37 +180,79 @@ export const VerificationReportPage: React.FC = () => {
         {/* 1. REPORT HERO: Dominant Primary Result */}
         <section
           ref={heroRef}
-          className="rounded-3xl bg-[#141215]/90 border border-white/10 p-8 sm:p-12 shadow-[0_24px_60px_rgba(0,0,0,0.85)] backdrop-blur-xl relative overflow-hidden"
+          className={`rounded-3xl border p-8 sm:p-12 shadow-[0_24px_60px_rgba(0,0,0,0.85)] backdrop-blur-xl relative overflow-hidden transition-all duration-300 ${
+            isSimulating
+              ? "bg-[#181014]/95 border-[#FF6D29]/50 shadow-[0_0_50px_rgba(255,109,41,0.2)]"
+              : "bg-[#141215]/90 border-white/10"
+          }`}
         >
           {/* Subtle amber / orange ambient top corner bloom */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-[#FF6D29]/10 rounded-full blur-[90px] pointer-events-none" />
+          <div className="absolute top-0 right-0 w-80 h-80 bg-[#FF6D29]/15 rounded-full blur-[90px] pointer-events-none" />
 
           {/* Top Tag & Badges */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
-              <div className="text-[11px] font-mono uppercase tracking-widest text-[#FF6D29] mb-1">
-                Deterministic Audit Artifact
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#FF6D29]">
+                  {isSimulating ? "ADVERSARIAL SIMULATION ARTIFACT" : "Deterministic Audit Artifact"}
+                </span>
+                {isSimulating && (
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#FF6D29] bg-[#FF6D29]/20 border border-[#FF6D29]/40 px-2 py-0.5 rounded-full animate-pulse">
+                    SIMULATED RESULT
+                  </span>
+                )}
               </div>
               <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white leading-tight">
-                Verification Report:{" "}
-                <span className="font-mono text-[#FFA776]">{caseItem.transactionId}</span>
+                {isSimulating ? (
+                  <>
+                    Simulation:{" "}
+                    <span className="font-mono text-[#FF6D29]">{simulationResult?.scenarioTitle}</span>
+                  </>
+                ) : (
+                  <>
+                    Verification Report:{" "}
+                    <span className="font-mono text-[#FFA776]">{caseItem.transactionId}</span>
+                  </>
+                )}
               </h1>
+              {isSimulating && simulationResult && (
+                <p className="text-xs text-[#BABABA] mt-1 max-w-2xl leading-relaxed">
+                  {simulationResult.scenarioDescription}
+                </p>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-medium">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Verified</span>
+              <span
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-medium ${
+                  isLowRisk
+                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                    : "border-[#FF6D29]/40 bg-[#FF6D29]/20 text-[#FFA776]"
+                }`}
+              >
+                {isLowRisk ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Verified</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="w-3.5 h-3.5 text-[#FF6D29]" />
+                    <span>Review Required</span>
+                  </>
+                )}
               </span>
               <span
                 className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-xs font-mono font-medium ${
                   isLowRisk
                     ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                    : "border-[#FF6D29]/30 bg-[#FF6D29]/15 text-[#FFA776]"
+                    : "border-red-500/40 bg-red-500/15 text-red-300"
                 }`}
               >
-                <span>Risk: {caseItem.riskLevel || "LOW"}</span>
+                <span>Risk: {effectiveRisk}</span>
               </span>
+
+              {/* View Proof Graph Button */}
               <button
                 type="button"
                 onClick={() => setShowGraphModal(true)}
@@ -193,6 +260,16 @@ export const VerificationReportPage: React.FC = () => {
               >
                 <Network className="w-3.5 h-3.5 text-[#FF6D29]" />
                 <span>View Proof Graph</span>
+              </button>
+
+              {/* Simulate Discrepancy Secondary Action Button */}
+              <button
+                type="button"
+                onClick={() => setShowSimModal(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 text-xs font-display font-medium text-[#BABABA] hover:text-white transition cursor-pointer"
+              >
+                <FlaskConical className="w-3.5 h-3.5 text-[#FF6D29]" />
+                <span>{isSimulating ? "Switch Scenario" : "Simulate discrepancy"}</span>
               </button>
             </div>
           </div>
@@ -205,19 +282,29 @@ export const VerificationReportPage: React.FC = () => {
                 Measured Weight
               </div>
               <div className="text-3xl sm:text-4xl font-semibold font-mono text-white tracking-tight">
-                {report.calculatedValues.measuredWeight}{" "}
-                <span className="text-sm text-[#BABABA]">{report.calculatedValues.unit || "kg"}</span>
+                {effectiveReport.calculatedValues.measuredWeight ?? "—"}{" "}
+                <span className="text-sm text-[#BABABA]">{effectiveReport.calculatedValues.unit || "kg"}</span>
               </div>
-              <div className="text-[11px] text-[#BABABA]">Sum of 3 weighbridge slips</div>
+              <div className="text-[11px] text-[#BABABA]">Physical scale verification sum</div>
             </div>
 
             {/* Vs & Variance badge */}
             <div className="flex flex-col items-center justify-center space-y-2 py-2 border-y md:border-y-0 md:border-x border-white/[0.08]">
               <div className="text-xs uppercase tracking-widest font-mono text-[#BABABA]/60">vs</div>
-              <div className="text-2xl font-bold font-mono text-emerald-400">
-                {report.calculatedValues.variancePercentage}%
+              <div
+                className={`text-2xl font-bold font-mono ${
+                  tolerancePassed ? "text-emerald-400" : "text-red-400"
+                }`}
+              >
+                {effectiveReport.calculatedValues.variancePercentage ?? 0}%
               </div>
-              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
+              <div
+                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase ${
+                  tolerancePassed
+                    ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-300"
+                    : "bg-red-500/15 border border-red-500/30 text-red-300"
+                }`}
+              >
                 {tolerancePassed ? "Within 2.0% Tolerance" : "Exceeds Tolerance"}
               </div>
             </div>
@@ -228,10 +315,10 @@ export const VerificationReportPage: React.FC = () => {
                 Claimed Weight
               </div>
               <div className="text-3xl sm:text-4xl font-semibold font-mono text-white tracking-tight">
-                {report.calculatedValues.claimedWeight}{" "}
-                <span className="text-sm text-[#BABABA]">{report.calculatedValues.unit || "kg"}</span>
+                {effectiveReport.calculatedValues.claimedWeight ?? "—"}{" "}
+                <span className="text-sm text-[#BABABA]">{effectiveReport.calculatedValues.unit || "kg"}</span>
               </div>
-              <div className="text-[11px] text-[#BABABA]">Invoice INV-2026-EW104 declaration</div>
+              <div className="text-[11px] text-[#BABABA]">Declared invoice specification</div>
             </div>
           </div>
 
@@ -321,7 +408,7 @@ export const VerificationReportPage: React.FC = () => {
                   Measured Total
                 </span>
                 <span className="text-base font-mono font-bold text-white">
-                  {report.calculatedValues.measuredWeight} kg
+                  {effectiveReport.calculatedValues.measuredWeight ?? "—"} kg
                 </span>
               </div>
             </div>
@@ -343,11 +430,11 @@ export const VerificationReportPage: React.FC = () => {
               </p>
             </div>
             <span className="text-xs font-mono text-[#BABABA]">
-              {report.findings.length} Finding(s)
+              {effectiveReport.findings.length} Finding(s)
             </span>
           </div>
 
-          {report.findings.length === 0 ? (
+          {effectiveReport.findings.length === 0 ? (
             <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-start gap-3.5 text-xs text-emerald-300">
               <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
               <div>
@@ -359,7 +446,7 @@ export const VerificationReportPage: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {report.findings.map((f) => (
+              {effectiveReport.findings.map((f) => (
                 <div
                   key={f.findingId}
                   className="p-5 rounded-2xl bg-black/40 border border-white/[0.08] space-y-2"
@@ -477,8 +564,20 @@ export const VerificationReportPage: React.FC = () => {
           caseId={caseId!}
           isOpen={showGraphModal}
           onClose={() => setShowGraphModal(false)}
+          initialGraphData={isSimulating && simulationResult ? simulationResult.proofGraph : undefined}
+          isSimulated={isSimulating}
+        />
+      )}
+
+      {/* Adversarial Discrepancy Simulator Modal */}
+      {caseItem && (
+        <SimulationModal
+          caseId={caseId!}
+          isOpen={showSimModal}
+          onClose={() => setShowSimModal(false)}
         />
       )}
     </GlowBackground>
   );
 };
+

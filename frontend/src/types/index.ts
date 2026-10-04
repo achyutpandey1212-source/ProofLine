@@ -144,6 +144,7 @@ export interface ProofGraphNode {
   severity?: "LOW" | "MEDIUM" | "HIGH" | "REVIEW_REQUIRED";
   category?: string;
   metadata: Record<string, unknown>;
+  isSimulated?: boolean;
   // Dynamic layout coordinates computed on frontend
   x?: number;
   y?: number;
@@ -184,4 +185,35 @@ export interface ProofGraphDto {
     overallRisk: string;
   };
 }
+
+export type SimulationScenario =
+  | "WEIGHT_MISMATCH"
+  | "INVOICE_MISMATCH"
+  | "TRANSACTION_MISMATCH"
+  | "EVIDENCE_INCONSISTENCY";
+
+export interface SimulationResultDto {
+  scenario: SimulationScenario;
+  isSimulated: true;
+  scenarioTitle: string;
+  scenarioDescription: string;
+  mutatedFields: {
+    target: "CASE" | "EVIDENCE";
+    identifier: string;
+    field: string;
+    originalValue: unknown;
+    simulatedValue: unknown;
+  }[];
+  verification: {
+    status: string;
+    overallRisk: RiskLevel;
+    summary: string;
+    calculatedValues: VerificationReport["calculatedValues"];
+    ruleResults: RuleResultItem[];
+    findings: FindingItem[];
+    verifiedAt: string;
+  };
+  proofGraph: ProofGraphDto;
+}
+
 

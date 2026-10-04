@@ -18,15 +18,19 @@ interface ProofGraphModalProps {
   caseId: string;
   isOpen: boolean;
   onClose: () => void;
+  initialGraphData?: ProofGraphDto | null;
+  isSimulated?: boolean;
 }
 
 export const ProofGraphModal: React.FC<ProofGraphModalProps> = ({
   caseId,
   isOpen,
   onClose,
+  initialGraphData,
+  isSimulated,
 }) => {
-  const [data, setData] = useState<ProofGraphDto | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<ProofGraphDto | null>(initialGraphData || null);
+  const [loading, setLoading] = useState(!initialGraphData);
   const [error, setError] = useState<string | null>(null);
 
   // Pan & Zoom state
@@ -43,6 +47,11 @@ export const ProofGraphModal: React.FC<ProofGraphModalProps> = ({
 
   // Fetch graph data from backend
   const loadGraph = useCallback(async () => {
+    if (initialGraphData) {
+      setData(initialGraphData);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -53,14 +62,19 @@ export const ProofGraphModal: React.FC<ProofGraphModalProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [caseId]);
+  }, [caseId, initialGraphData]);
 
   useEffect(() => {
     if (isOpen) {
-      loadGraph();
+      if (initialGraphData) {
+        setData(initialGraphData);
+        setLoading(false);
+      } else {
+        loadGraph();
+      }
       setSelectedNode(null);
     }
-  }, [isOpen, loadGraph]);
+  }, [isOpen, initialGraphData, loadGraph]);
 
   // Compute Layout when data is loaded
   const layout = useMemo(() => {
@@ -223,6 +237,11 @@ export const ProofGraphModal: React.FC<ProofGraphModalProps> = ({
                 <span className="font-mono text-xs text-[#FFA776] bg-[#FF6D29]/10 border border-[#FF6D29]/25 px-2 py-0.5 rounded-full">
                   {data?.case.transactionId || caseId}
                 </span>
+                {isSimulated && (
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-[#FF6D29] bg-[#FF6D29]/20 border border-[#FF6D29]/50 px-2.5 py-0.5 rounded-full font-semibold animate-pulse">
+                    SIMULATION
+                  </span>
+                )}
               </div>
               <p className="text-[11px] font-display text-[#BABABA]">
                 Visual chain of custody &bull; Case &rarr; Evidence &rarr; Extracted Facts &rarr; Verification Rules &rarr; Outcome

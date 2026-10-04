@@ -78,6 +78,9 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
     if (isHighlighted) {
       return "border-[#FFA776] shadow-[0_0_20px_rgba(255,167,118,0.25)]";
     }
+    if (node.isSimulated) {
+      return "border-[#FF6D29] ring-1 ring-[#FF6D29]/40 shadow-[0_0_25px_rgba(255,109,41,0.3)]";
+    }
     if (hasActiveSelection) {
       return "border-white/[0.04] opacity-35";
     }
@@ -245,6 +248,12 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
                   {node.category || node.type}
                 </span>
               </div>
+
+              {node.isSimulated && (
+                <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded-full border bg-[#FF6D29]/20 border-[#FF6D29]/50 text-[#FFA776] animate-pulse">
+                  SIMULATED
+                </span>
+              )}
 
               {node.severity && (
                 <span

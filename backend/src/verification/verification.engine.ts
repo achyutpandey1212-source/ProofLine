@@ -5,6 +5,7 @@ import { WeightReconciliationRule, aggregateScaleWeights } from "./rules/weightR
 import { DocumentQuantityConsistencyRule } from "./rules/documentQuantityConsistency.rule";
 import { EntityConsistencyRule } from "./rules/entityConsistency.rule";
 import { TransactionIdConsistencyRule } from "./rules/transactionIdConsistency.rule";
+import { MaterialConsistencyRule } from "./rules/materialConsistency.rule";
 import { normalizeToKg } from "./normalization/normalizer";
 import { RiskLevel } from "../models/case.model";
 import { IRuleResult } from "../models/verification.model";
@@ -31,6 +32,7 @@ export class VerificationEngine {
     new DocumentQuantityConsistencyRule(),
     new EntityConsistencyRule(),
     new TransactionIdConsistencyRule(),
+    new MaterialConsistencyRule(),
   ];
 
   /**

@@ -22,6 +22,7 @@ export interface ProofGraphNode {
   severity?: "LOW" | "MEDIUM" | "HIGH" | "REVIEW_REQUIRED";
   category?: string;
   metadata: Record<string, unknown>;
+  isSimulated?: boolean;
 }
 
 export interface ProofGraphEdge {
@@ -88,6 +89,25 @@ export class ProofGraphService {
       VerificationModel.findOne({ caseId: caseDoc._id }),
       FindingModel.find({ caseId: caseDoc._id }).sort({ createdAt: 1 }),
     ]);
+
+    return this.buildGraphFromData({
+      caseDoc,
+      evidenceDocs,
+      verificationDoc,
+      findingDocs,
+    });
+  }
+
+  /**
+   * Pure graph construction method that accepts data models or clones.
+   */
+  public static buildGraphFromData(params: {
+    caseDoc: any;
+    evidenceDocs: any[];
+    verificationDoc: any;
+    findingDocs: any[];
+  }): ProofGraphDto {
+    const { caseDoc, evidenceDocs, verificationDoc, findingDocs } = params;
 
     const nodes: ProofGraphNode[] = [];
     const edges: ProofGraphEdge[] = [];
@@ -249,7 +269,7 @@ export class ProofGraphService {
       const ruleTitle = ruleRes.ruleId
         .replace(/_/g, " ")
         .toLowerCase()
-        .replace(/\b\w/g, (c) => c.toUpperCase());
+        .replace(/\b\w/g, (c: string) => c.toUpperCase());
 
       nodes.push({
         id: ruleNodeId,
@@ -291,6 +311,9 @@ export class ProofGraphService {
         } else if (ruleRes.ruleId === "DOCUMENT_QUANTITY_CONSISTENCY") {
           const qtyFact = factKeys?.get("quantity") || factKeys?.get("weight");
           if (qtyFact) targetedFactIds.push(qtyFact);
+        } else if (ruleRes.ruleId === "MATERIAL_CONSISTENCY") {
+          const matFact = factKeys?.get("materialDescription") || factKeys?.get("material");
+          if (matFact) targetedFactIds.push(matFact);
         }
 
         // If specific facts targeted, connect them

@@ -26,9 +26,13 @@ import {
   ExternalLink,
   Sparkles,
   Network,
+  FlaskConical,
 } from "lucide-react";
 import { DemoManager } from "../demo/demoRunner";
 import { ProofGraphModal } from "../components/graph/ProofGraphModal";
+import { SimulationBanner } from "../components/SimulationBanner";
+import { SimulationModal } from "../components/simulation/SimulationModal";
+import { useSimulation } from "../context/SimulationContext";
 
 const EVIDENCE_TYPE_OPTIONS = [
   { value: "SCALE_IMAGE", label: "Scale Image (Display Weighing)" },
@@ -43,6 +47,9 @@ const EVIDENCE_TYPE_OPTIONS = [
 
 export const CaseDetailPage: React.FC = () => {
   const { caseId } = useParams<{ caseId: string }>();
+
+  const { isSimulating, simulationResult } = useSimulation();
+  const [showSimModal, setShowSimModal] = useState(false);
 
   // State
   const [caseItem, setCaseItem] = useState<CaseItem | null>(null);
@@ -223,6 +230,7 @@ export const CaseDetailPage: React.FC = () => {
 
   return (
     <GlowBackground className="flex flex-col min-h-screen">
+      <SimulationBanner />
       {/* Reusable floating cylindrical glassmorphism Navbar */}
       <Navbar />
 
@@ -237,7 +245,19 @@ export const CaseDetailPage: React.FC = () => {
             <span>Back to Cases</span>
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Subtle secondary action: Simulate discrepancy */}
+            <button
+              type="button"
+              onClick={() => setShowSimModal(true)}
+              disabled={evidenceList.length === 0}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 text-xs font-display text-[#BABABA] hover:text-white transition cursor-pointer disabled:opacity-40"
+              title="Test how Proofline responds when submitted evidence conflicts"
+            >
+              <FlaskConical className="w-3.5 h-3.5 text-[#FF6D29]" />
+              <span>{isSimulating ? "Switch Scenario" : "Simulate discrepancy"}</span>
+            </button>
+
             {report && (
               <>
                 <button
@@ -607,6 +627,17 @@ export const CaseDetailPage: React.FC = () => {
           caseId={caseId!}
           isOpen={showGraphModal}
           onClose={() => setShowGraphModal(false)}
+          initialGraphData={isSimulating && simulationResult ? simulationResult.proofGraph : undefined}
+          isSimulated={isSimulating}
+        />
+      )}
+
+      {/* Adversarial Discrepancy Simulator Modal */}
+      {caseItem && (
+        <SimulationModal
+          caseId={caseId!}
+          isOpen={showSimModal}
+          onClose={() => setShowSimModal(false)}
         />
       )}
     </GlowBackground>

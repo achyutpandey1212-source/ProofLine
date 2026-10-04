@@ -22,4 +22,18 @@ export class VerificationClientService {
   public static async getReport(caseId: string): Promise<VerificationReport> {
     return ApiClient.get<VerificationReport>(`/cases/${caseId}/verification`);
   }
+
+  /**
+   * Runs an isolated adversarial simulation without affecting real case data.
+   */
+  public static async runSimulation(
+    caseId: string,
+    scenario: import("../types").SimulationScenario
+  ): Promise<import("../types").SimulationResultDto> {
+    return ApiClient.post<import("../types").SimulationResultDto>(
+      `/cases/${caseId}/simulate`,
+      { scenario }
+    );
+  }
 }
+

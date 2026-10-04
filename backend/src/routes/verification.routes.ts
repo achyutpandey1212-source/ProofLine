@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { VerificationController } from "../controllers/verification.controller";
+import { SimulationController } from "../controllers/simulation.controller";
 import { authenticateToken } from "../middleware/auth.middleware";
 import { validateRequest } from "../middleware/validate.middleware";
 import { verifyCaseParamSchema } from "../validators/verification.validator";
@@ -13,6 +14,12 @@ router.post(
   "/cases/:caseId/verify",
   validateRequest({ params: verifyCaseParamSchema }),
   VerificationController.verify
+);
+
+router.post(
+  "/cases/:caseId/simulate",
+  validateRequest({ params: verifyCaseParamSchema }),
+  SimulationController.simulate
 );
 
 router.get(
