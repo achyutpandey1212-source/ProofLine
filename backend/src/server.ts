@@ -9,6 +9,7 @@ import { logProviderConfiguration } from "./services/aiProvider.service";
 import healthRoutes from "./routes/health.routes";
 import caseRoutes from "./routes/case.routes";
 import evidenceRoutes from "./routes/evidence.routes";
+import verificationRoutes from "./routes/verification.routes";
 import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
 import { logger } from "./utils/logger";
 
@@ -53,6 +54,7 @@ export const createApp = (): Express => {
   app.use(healthRoutes);
   app.use(caseRoutes);
   app.use(evidenceRoutes);
+  app.use(verificationRoutes);
 
   // 404 & Centralized Error Handlers
   app.use(notFoundHandler);
