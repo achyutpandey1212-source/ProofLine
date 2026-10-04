@@ -25,155 +25,86 @@ export const FullDemoModal: React.FC<FullDemoModalProps> = ({ isOpen, onClose })
         setProgress(p);
       });
 
-      // Automatically navigate to case details after initiating
       setTimeout(() => {
         navigate(`/cases/${createdCase.caseId}`);
       }, 1500);
     } catch {
-      // Error handled in progress state
       setRunning(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 font-sans">
-      <div className="w-full max-w-lg border-2 border-black bg-white p-6 shadow-2xl">
-        <div className="flex items-center justify-between pb-3 border-b border-black mb-4">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-black" />
-            <h2 className="font-mono text-sm font-bold uppercase">PROOF_LINE // FULL DEMO EXECUTION</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 font-sans">
+      <div className="w-full max-w-lg rounded-3xl bg-[#141215] border border-white/10 p-6 sm:p-7 shadow-[0_25px_60px_rgba(0,0,0,0.9)] text-white">
+        <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-5">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#FF6D29]/15 border border-[#FF6D29]/30 flex items-center justify-center text-[#FF6D29]">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="font-display text-sm font-semibold text-white tracking-tight">Full Demo Scenario</h2>
+              <p className="text-[11px] font-display text-[#BABABA]">Automated end-to-end reconciliation</p>
+            </div>
           </div>
           {!running && (
             <button
               onClick={onClose}
-              className="p-1 hover:bg-gray-100 transition cursor-pointer text-black"
+              className="w-7 h-7 rounded-full bg-white/[0.05] hover:bg-white/[0.1] flex items-center justify-center text-[#BABABA] hover:text-white transition cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
-        <div className="space-y-4 text-xs font-mono">
-          <div className="border border-gray-300 p-3 bg-gray-50">
-            <div className="font-bold mb-1 uppercase">OFFICIAL HACKATHON SCENARIO:</div>
-            <div>Transaction: EW-104 (ABC Recycling Pvt Ltd)</div>
-            <div>Claimed Net: 560 kg PET Flakes</div>
-            <div>Evidence: 1 Commercial Invoice + 3 Scale Slips (184.6 kg, 193.2 kg, 177.8 kg)</div>
-            <div>Expected: 555.6 kg Measured (0.79% Variance, LOW Risk)</div>
+        <div className="space-y-4 text-xs font-display">
+          <div className="rounded-2xl bg-black/40 border border-white/[0.08] p-4 space-y-1.5">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-[#FFA776]">Transaction Context:</div>
+            <div className="text-white font-medium">EW-104 &bull; ABC Recycling Pvt Ltd</div>
+            <div className="text-[#BABABA]">Claimed Net: 560 kg PET Flakes &bull; ₹39,200</div>
           </div>
 
-          {/* Real Steps Sequence */}
-          <div className="border border-black p-4 space-y-2.5 bg-white">
-            <div className="font-bold text-gray-700 uppercase mb-2">EXECUTION SEQUENCE:</div>
-
-            <div className="flex items-center gap-2">
-              {progress.step === "CREATE_CASE" ? (
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-              ) : progress.createdCase ? (
-                <CheckCircle2 className="w-3.5 h-3.5 text-black" />
+          <div className="rounded-2xl bg-black/40 border border-white/[0.08] p-4 space-y-2">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-[#BABABA]">Live Pipeline Status:</div>
+            <div className="flex items-start gap-2.5">
+              {progress.step === "COMPLETED" ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              ) : progress.step === "ERROR" ? (
+                <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+              ) : running ? (
+                <RefreshCw className="w-4 h-4 text-[#FF6D29] animate-spin shrink-0 mt-0.5" />
               ) : (
-                <span className="w-3.5 h-3.5 inline-block border border-gray-400 text-center text-[10px] leading-3">1</span>
+                <div className="w-2 h-2 rounded-full bg-white/20 shrink-0 mt-1.5" />
               )}
-              <span className={progress.createdCase ? "font-bold text-black" : "text-gray-600"}>
-                Create Real Case (EW-104)
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {progress.step === "UPLOAD_EVIDENCE" ? (
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-              ) : progress.uploadedItems && progress.uploadedItems.length >= 4 ? (
-                <CheckCircle2 className="w-3.5 h-3.5 text-black" />
-              ) : (
-                <span className="w-3.5 h-3.5 inline-block border border-gray-400 text-center text-[10px] leading-3">2</span>
-              )}
-              <span
-                className={
-                  progress.uploadedItems && progress.uploadedItems.length >= 4
-                    ? "font-bold text-black"
-                    : "text-gray-600"
-                }
-              >
-                Upload 4 Synthetic Evidence Files to ImageKit
-                {progress.uploadedItems && progress.uploadedItems.length > 0 && (
-                  <span className="text-[11px] text-gray-500 ml-1">
-                    ({progress.uploadedItems.length}/4 complete)
-                  </span>
-                )}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {progress.step === "START_VERIFICATION" || progress.step === "COMPLETED" ? (
-                progress.step === "COMPLETED" ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-black" />
-                ) : (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                )
-              ) : (
-                <span className="w-3.5 h-3.5 inline-block border border-gray-400 text-center text-[10px] leading-3">3</span>
-              )}
-              <span className={progress.step === "COMPLETED" ? "font-bold text-black" : "text-gray-600"}>
-                Trigger Real Verification Engine (Gemini + LangGraph)
-              </span>
-            </div>
-          </div>
-
-          {/* Status / Error Box */}
-          <div className="p-3 border border-gray-400 bg-gray-50 flex items-start gap-2">
-            {progress.step === "ERROR" ? (
-              <AlertCircle className="w-4 h-4 text-black flex-shrink-0" />
-            ) : running ? (
-              <RefreshCw className="w-4 h-4 animate-spin flex-shrink-0" />
-            ) : (
-              <Sparkles className="w-4 h-4 text-black flex-shrink-0" />
-            )}
-            <div className="leading-tight">
-              <span className="font-bold">STATUS: </span>
-              {progress.message}
+              <div className="text-white leading-relaxed">{progress.message}</div>
             </div>
           </div>
 
           <div className="pt-2 flex items-center justify-end gap-3">
             {!running && (
               <button
-                type="button"
                 onClick={onClose}
-                className="px-4 py-2 border border-gray-400 text-black hover:bg-gray-100 transition cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs text-[#BABABA] hover:text-white hover:bg-white/[0.04] transition cursor-pointer"
               >
-                CANCEL
+                Close
               </button>
             )}
-
-            {progress.step === "ERROR" ? (
-              <button
-                type="button"
-                onClick={handleStartFullDemo}
-                className="inline-flex items-center gap-1.5 px-4 py-2 border border-black bg-black text-white hover:bg-white hover:text-black transition cursor-pointer"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>RETRY DEMO</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                disabled={running}
-                onClick={handleStartFullDemo}
-                className="inline-flex items-center gap-1.5 px-4 py-2 border border-black bg-black text-white hover:bg-white hover:text-black disabled:opacity-50 transition cursor-pointer font-bold"
-              >
-                {running ? (
-                  <>
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    <span>EXECUTING REAL PIPELINE...</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-3.5 h-3.5" />
-                    <span>RUN FULL DEMO NOW</span>
-                  </>
-                )}
-              </button>
-            )}
+            <button
+              onClick={handleStartFullDemo}
+              disabled={running}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-medium shadow-[0_0_20px_rgba(255,109,41,0.4)] hover:shadow-[0_0_28px_rgba(255,109,41,0.6)] transition-all cursor-pointer disabled:opacity-50"
+            >
+              {running ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Processing Evidence...</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>Run Scenario</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
