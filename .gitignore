@@ -1,0 +1,43 @@
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*serviceAccount*.json
+*firebase-adminsdk*.json
+
+# Internal product & engineering documentation
+Docs/
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production builds
+dist/
+build/
+out/
+
+# Testing & coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
