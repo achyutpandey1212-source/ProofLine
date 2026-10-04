@@ -137,8 +137,8 @@ export const Hero: React.FC = () => {
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
-          end: "bottom top",
-          scrub: 1.2,
+          end: "bottom 30%",
+          scrub: 1.0,
           invalidateOnRefresh: true,
         },
       });
@@ -161,7 +161,7 @@ export const Hero: React.FC = () => {
         scrollTl.to(
           contentWrapperRef.current,
           {
-            y: -70,
+            y: -50,
             opacity: 0,
             ease: "power2.inOut",
           },

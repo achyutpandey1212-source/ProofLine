@@ -19,28 +19,22 @@ export const HeroNavigation: React.FC<HeroNavigationProps> = ({ navRef }) => {
         {/* Brand: [Proofline icon] PROOFLINE */}
         <Link
           to="/"
-          className="group inline-flex items-center gap-2.5 font-display tracking-[0.22em] text-xs sm:text-[13px] font-semibold uppercase text-proof-offwhite hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-proof-vermillion"
+          className="group inline-flex items-center gap-3.5 font-display tracking-[0.2em] text-sm sm:text-base font-semibold uppercase text-proof-offwhite hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-proof-vermillion"
         >
           <ProoflineIcon
-            size={18}
+            size={40}
             className="transition-transform duration-300 group-hover:scale-105"
           />
           <span>PROOFLINE</span>
         </Link>
 
-        {/* Minimal Navigation links inspired by reference: subtle editorial text */}
+        {/* Minimal Navigation links: subtle editorial text */}
         <nav className="hidden md:flex items-center gap-8 font-display text-[13px] text-proof-gray font-normal tracking-wide">
-          <a href="#how-it-works" className="hover:text-proof-offwhite transition-colors duration-200">
-            System
-          </a>
-          <a href="#evidence" className="hover:text-proof-offwhite transition-colors duration-200">
-            Evidence
-          </a>
-          <a href="#tolerance" className="hover:text-proof-offwhite transition-colors duration-200">
-            Tolerance Engine
-          </a>
-          <a href="#docs" className="hover:text-proof-offwhite transition-colors duration-200">
-            Specs
+          <Link to="/cases" className="hover:text-proof-offwhite transition-colors duration-200">
+            Console
+          </Link>
+          <a href="#footer" className="hover:text-proof-offwhite transition-colors duration-200">
+            About
           </a>
         </nav>
 

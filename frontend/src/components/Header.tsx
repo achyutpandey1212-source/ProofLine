@@ -1,7 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ShieldCheck, LogOut } from "lucide-react";
+import { ProoflineIcon } from "./icons/ProoflineIcon";
+import { LogOut } from "lucide-react";
 
 export const Header: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -9,8 +10,8 @@ export const Header: React.FC = () => {
   return (
     <header className="bg-white border-b border-black sticky top-0 z-20">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/cases" className="flex items-center gap-2 text-black font-bold text-lg tracking-tight">
-          <ShieldCheck className="w-5 h-5 text-black" />
+        <Link to="/cases" className="flex items-center gap-3 text-black font-bold text-lg tracking-tight">
+          <ProoflineIcon size={38} className="rounded-sm" />
           <span>PROOF_LINE</span>
         </Link>
 

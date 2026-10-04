@@ -50,28 +50,53 @@ export const HeroContent: React.FC<HeroContentProps> = ({
         </p>
 
         {/* 
-          CTA Control (Green circle element - refined & improvised):
-          A dedicated, beautifully engineered primary verification action button
-          combining an architectural pill geometry, crisp contrast, vermillion accent, and secondary link.
+          CTA Control:
+          Engineered 3D flip / page-turn hover interaction with Vermillion accent back-face.
+          - Front face: Crisp off-white pill surface with high-contrast pitch-black text & arrow.
+          - Back face: Rich vermillion (#E15B35) surface with crisp off-white text & animated arrow.
         */}
         <div
           ref={ctaGroupRef}
           className="pt-3 sm:pt-4 flex flex-col items-center gap-4 sm:gap-5 font-display"
         >
-          {/* Primary Action Button */}
-          <Link
-            to="/cases"
-            className="group relative inline-flex items-center justify-center gap-3 px-8 sm:px-9 py-3.5 sm:py-4 rounded-full bg-proof-offwhite text-proof-black font-semibold text-sm sm:text-[15px] tracking-wide hover:bg-white transition-all duration-300 shadow-[0_4px_24px_rgba(244,241,234,0.18)] hover:shadow-[0_6px_32px_rgba(244,241,234,0.28)] hover:scale-[1.02] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proof-vermillion"
-          >
-            <span>Start a verification</span>
-            <span className="w-5 h-5 rounded-full bg-proof-black/10 flex items-center justify-center transition-transform duration-300 ease-out group-hover:translate-x-1">
-              <ArrowRight className="w-3.5 h-3.5 text-proof-black" />
-            </span>
-          </Link>
+          {/* 3D Flip Card Container */}
+          <div className="group relative [perspective:1000px]">
+            <Link
+              to="/cases"
+              className="relative block h-[52px] sm:h-[56px] w-[240px] sm:w-[260px] rounded-full transition-all duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateX(180deg)] shadow-[0_8px_30px_rgba(0,0,0,0.6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proof-vermillion"
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              {/* FRONT FACE: Off-white surface, razor-sharp black text */}
+              <div
+                className="absolute inset-0 flex items-center justify-between px-6 sm:px-7 rounded-full bg-[#F4F1EA] text-[#000000] border border-[#F4F1EA] shadow-[0_4px_24px_rgba(244,241,234,0.2)] transition-shadow duration-300"
+                style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
+              >
+                <span className="font-semibold text-sm sm:text-[15px] tracking-wide text-black select-none">
+                  Start a verification
+                </span>
+                <span className="w-6 h-6 rounded-full bg-black/10 flex items-center justify-center shrink-0">
+                  <ArrowRight className="w-3.5 h-3.5 text-black stroke-[2.2]" />
+                </span>
+              </div>
+
+              {/* BACK FACE: Vermillion accent surface, smooth page-flip reveal */}
+              <div
+                className="absolute inset-0 flex items-center justify-between px-6 sm:px-7 rounded-full bg-[#E15B35] text-[#F4F1EA] border border-[#E15B35] shadow-[0_8px_32px_rgba(225,91,53,0.4)] [transform:rotateX(180deg)]"
+                style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
+              >
+                <span className="font-semibold text-sm sm:text-[15px] tracking-wide text-[#F4F1EA] select-none">
+                  Start a verification
+                </span>
+                <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <ArrowRight className="w-3.5 h-3.5 text-[#F4F1EA] stroke-[2.2] translate-x-0.5" />
+                </span>
+              </div>
+            </Link>
+          </div>
 
           {/* Secondary Action */}
           <a
-            href="#how-it-works"
+            href="#footer"
             className="group inline-flex items-center gap-1.5 text-xs sm:text-sm font-normal tracking-wide text-proof-gray hover:text-proof-offwhite transition-colors duration-200"
           >
             <span>See how it works</span>
