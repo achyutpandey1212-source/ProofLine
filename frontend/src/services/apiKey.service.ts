@@ -23,7 +23,9 @@ export class ApiKeyService {
    */
   public static async listKeys(): Promise<ApiKeyDto[]> {
     const res = await ApiClient.get<{ success: boolean; data: ApiKeyDto[] }>("/api-keys");
-    return res.data;
+    if (Array.isArray(res)) return res;
+    if (res && Array.isArray((res as any).data)) return (res as any).data;
+    return [];
   }
 
   /**

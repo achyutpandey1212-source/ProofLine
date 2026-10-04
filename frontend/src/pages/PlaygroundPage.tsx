@@ -78,10 +78,15 @@ export const PlaygroundPage: React.FC = () => {
     // Check if user has existing API keys to select from
     ApiKeyService.listKeys()
       .then((keys) => {
-        setSavedKeysCount(keys.filter((k) => !k.isRevoked).length);
+        if (Array.isArray(keys)) {
+          setSavedKeysCount(keys.filter((k) => !k.isRevoked).length);
+        } else {
+          setSavedKeysCount(0);
+        }
       })
       .catch(() => {
         // Unauthenticated or network error, silently handle
+        setSavedKeysCount(0);
       });
   }, []);
 

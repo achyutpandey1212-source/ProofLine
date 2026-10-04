@@ -29,9 +29,15 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => 
       setLoading(true);
       setError(null);
       const data = await ApiKeyService.listKeys();
-      setKeys(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load API keys.");
+      setKeys(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("session has expired") || msg.includes("sign in")) {
+        setError("Please sign in to the Proofline Console to manage your API keys.");
+      } else {
+        setError(msg || "Failed to load API keys.");
+      }
+      setKeys([]);
     } finally {
       setLoading(false);
     }
@@ -158,20 +164,20 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => 
         {/* Keys List */}
         <div className="space-y-2">
           <div className="text-[11px] font-mono uppercase tracking-wider text-[#BABABA]">
-            Active Keys ({keys.length})
+            Active Keys ({(keys || []).length})
           </div>
 
           {loading ? (
             <div className="py-8 text-center text-xs text-[#BABABA] font-display">
               Loading keys...
             </div>
-          ) : keys.length === 0 ? (
+          ) : (keys || []).length === 0 ? (
             <div className="py-8 text-center rounded-xl border border-white/5 bg-white/[0.02] text-xs text-[#BABABA] font-display">
               No API keys generated yet. Create one to integrate via <code className="text-[#FFA776]">/api/v1/</code>.
             </div>
           ) : (
             <div className="divide-y divide-white/5 border border-white/10 rounded-xl overflow-hidden bg-white/[0.02]">
-              {keys.map((k) => (
+              {(keys || []).map((k) => (
                 <div
                   key={k.id}
                   className="p-3.5 flex items-center justify-between gap-4 hover:bg-white/[0.02] transition"
