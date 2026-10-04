@@ -4,14 +4,16 @@ import { Navbar } from "../components/Navbar";
 import { GlowBackground } from "../components/ui/GlowBackground";
 import { CaseService } from "../services/case.service";
 import { CaseItem } from "../types";
-import { Plus, ArrowRight, AlertCircle, FileSpreadsheet, Sparkles, RefreshCw } from "lucide-react";
+import { Plus, ArrowRight, AlertCircle, FileSpreadsheet, Sparkles, RefreshCw, Key } from "lucide-react";
 import { FullDemoModal } from "../demo/FullDemoModal";
+import { ApiKeyModal } from "../components/apiKeys/ApiKeyModal";
 
 export const CasesListPage: React.FC = () => {
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showDemoModal, setShowDemoModal] = useState(false);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
 
   useEffect(() => {
     loadCases();
@@ -100,6 +102,14 @@ export const CasesListPage: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowApiKeyModal(true)}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-display text-white transition cursor-pointer"
+              title="Manage API Keys for external integrations"
+            >
+              <Key className="w-3.5 h-3.5 text-[#FF6D29]" />
+              <span>API Keys</span>
+            </button>
             <button
               onClick={() => setShowDemoModal(true)}
               className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-display text-white transition cursor-pointer"
@@ -234,6 +244,11 @@ export const CasesListPage: React.FC = () => {
           setShowDemoModal(false);
           loadCases();
         }}
+      />
+
+      <ApiKeyModal
+        isOpen={showApiKeyModal}
+        onClose={() => setShowApiKeyModal(false)}
       />
     </GlowBackground>
   );

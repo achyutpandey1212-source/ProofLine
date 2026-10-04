@@ -109,6 +109,10 @@ export class ApiClient {
     });
   }
 
+  public static delete<T>(endpoint: string): Promise<T> {
+    return this.request<T>(endpoint, { method: "DELETE" });
+  }
+
   /**
    * Downloads binary file (e.g. PDF proof packet) with authentication header
    */

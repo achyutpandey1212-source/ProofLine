@@ -10,6 +10,8 @@ import healthRoutes from "./routes/health.routes";
 import caseRoutes from "./routes/case.routes";
 import evidenceRoutes from "./routes/evidence.routes";
 import verificationRoutes from "./routes/verification.routes";
+import apiKeyRoutes from "./routes/apiKey.routes";
+import apiV1Routes from "./routes/apiV1.routes";
 import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
 import { logger } from "./utils/logger";
 
@@ -42,7 +44,8 @@ export const createApp = (): Express => {
       },
       credentials: true,
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
+      allowedHeaders: ["Content-Type", "Authorization", "Idempotency-Key", "X-Request-ID"],
+      exposedHeaders: ["X-Request-ID", "X-RateLimit-Limit", "X-RateLimit-Remaining", "Retry-After", "Idempotent-Replay"],
     })
   );
 
@@ -61,9 +64,15 @@ export const createApp = (): Express => {
 
   // Mount API & System Routes
   app.use(healthRoutes);
+
+  // Mount External API Version 1 (Authenticated via API Key)
+  app.use("/api/v1", apiV1Routes);
+
+  // Mount Internal Dashboard Routes (Authenticated via Firebase token)
   app.use(caseRoutes);
   app.use(evidenceRoutes);
   app.use(verificationRoutes);
+  app.use(apiKeyRoutes);
 
   // 404 & Centralized Error Handlers
   app.use(notFoundHandler);
