@@ -116,4 +116,34 @@ export class CaseController {
       next(err);
     }
   }
+
+  /**
+   * GET /cases/:caseId/proof-graph
+   * Retrieves the deterministic Evidence / Proof Graph for an owned case.
+   */
+  public static async getProofGraph(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new AppError("Authentication required.", 401, "UNAUTHORIZED");
+      }
+
+      const caseId = req.params["caseId"] || req.params["id"];
+      if (!caseId) {
+        throw new AppError("Case ID is required.", 400, "BAD_REQUEST");
+      }
+
+      const { ProofGraphService } = await import("../services/proofGraph.service");
+      const graph = await ProofGraphService.getProofGraph({
+        userId: req.user.userDoc._id,
+        caseIdOrMongoId: caseId,
+      });
+
+      res.status(200).json({
+        success: true,
+        data: graph,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }

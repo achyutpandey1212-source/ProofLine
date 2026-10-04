@@ -23,4 +23,10 @@ router.get(
   CaseController.getById
 );
 
+router.get(
+  "/cases/:id/proof-graph",
+  validateRequest({ params: caseParamSchema }),
+  CaseController.getProofGraph
+);
+
 export default router;

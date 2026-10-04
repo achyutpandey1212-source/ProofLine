@@ -14,8 +14,10 @@ import {
   FileText,
   ExternalLink,
   RefreshCw,
+  Network,
 } from "lucide-react";
 import gsap from "gsap";
+import { ProofGraphModal } from "../components/graph/ProofGraphModal";
 
 export const VerificationReportPage: React.FC = () => {
   const { caseId } = useParams<{ caseId: string }>();
@@ -25,6 +27,7 @@ export const VerificationReportPage: React.FC = () => {
   const [report, setReport] = useState<VerificationReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showGraphModal, setShowGraphModal] = useState(false);
 
   const heroRef = useRef<HTMLDivElement>(null);
   const reconciliationRef = useRef<HTMLDivElement>(null);
@@ -224,15 +227,25 @@ export const VerificationReportPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Bottom Difference Note */}
-          <div className="mt-5 text-center text-xs text-[#BABABA]">
-            Absolute discrepancy:{" "}
-            <span className="font-mono text-white font-medium">
-              {report.calculatedValues.differenceWeight !== undefined
-                ? `${Math.abs(report.calculatedValues.differenceWeight)} kg`
-                : "—"}
-            </span>{" "}
-            &bull; Verified against 4 physical documents with complete provenance.
+          {/* Bottom Difference Note & Proof Graph Action */}
+          <div className="mt-6 pt-5 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-xs text-[#BABABA]">
+              Absolute discrepancy:{" "}
+              <span className="font-mono text-white font-medium">
+                {report.calculatedValues.differenceWeight !== undefined
+                  ? `${Math.abs(report.calculatedValues.differenceWeight)} kg`
+                  : "—"}
+              </span>{" "}
+              &bull; Verified against {evidenceList.length} physical documents with complete provenance.
+            </div>
+
+            <button
+              onClick={() => setShowGraphModal(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium shadow-[0_0_20px_rgba(255,109,41,0.35)] hover:shadow-[0_0_28px_rgba(255,109,41,0.55)] transition-all cursor-pointer shrink-0"
+            >
+              <Network className="w-3.5 h-3.5" />
+              <span>View Proof Graph</span>
+            </button>
           </div>
         </section>
 
@@ -449,6 +462,15 @@ export const VerificationReportPage: React.FC = () => {
           </div>
         </section>
       </main>
+
+      {/* Interactive Proof Graph Modal */}
+      {caseItem && (
+        <ProofGraphModal
+          caseId={caseId!}
+          isOpen={showGraphModal}
+          onClose={() => setShowGraphModal(false)}
+        />
+      )}
     </GlowBackground>
   );
 };

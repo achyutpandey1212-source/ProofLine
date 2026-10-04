@@ -126,3 +126,62 @@ export interface WorkflowProgress {
   startedAt: string;
   completedAt?: string;
 }
+
+export type GraphNodeType =
+  | "CASE"
+  | "EVIDENCE"
+  | "FACT"
+  | "RULE"
+  | "FINDING"
+  | "RESULT";
+
+export interface ProofGraphNode {
+  id: string;
+  type: GraphNodeType;
+  label: string;
+  sublabel?: string;
+  status?: string;
+  severity?: "LOW" | "MEDIUM" | "HIGH" | "REVIEW_REQUIRED";
+  category?: string;
+  metadata: Record<string, unknown>;
+  // Dynamic layout coordinates computed on frontend
+  x?: number;
+  y?: number;
+  column?: number;
+}
+
+export interface ProofGraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  label?: string;
+  relationship:
+    | "CONTAINS"
+    | "EXTRACTED"
+    | "USED_BY"
+    | "PRODUCED"
+    | "CONTRIBUTES_TO";
+}
+
+export interface ProofGraphDto {
+  case: {
+    caseId: string;
+    transactionId: string;
+    partnerName: string;
+    material: string;
+    claimedQuantity: number;
+    unit: string;
+    status: string;
+    riskLevel?: string;
+  };
+  nodes: ProofGraphNode[];
+  edges: ProofGraphEdge[];
+  summary?: {
+    totalEvidence: number;
+    totalFacts: number;
+    totalRulesEvaluated: number;
+    totalFindings: number;
+    overallRisk: string;
+  };
+}
+

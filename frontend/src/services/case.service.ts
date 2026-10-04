@@ -23,4 +23,8 @@ export class CaseService {
   public static async createCase(payload: CreateCasePayload): Promise<CaseItem> {
     return ApiClient.post<CaseItem>("/cases", payload);
   }
+
+  public static async getProofGraph(caseId: string): Promise<import("../types").ProofGraphDto> {
+    return ApiClient.get<import("../types").ProofGraphDto>(`/cases/${caseId}/proof-graph`);
+  }
 }

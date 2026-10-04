@@ -25,8 +25,10 @@ import {
   RefreshCw,
   ExternalLink,
   Sparkles,
+  Network,
 } from "lucide-react";
 import { DemoManager } from "../demo/demoRunner";
+import { ProofGraphModal } from "../components/graph/ProofGraphModal";
 
 const EVIDENCE_TYPE_OPTIONS = [
   { value: "SCALE_IMAGE", label: "Scale Image (Display Weighing)" },
@@ -46,6 +48,7 @@ export const CaseDetailPage: React.FC = () => {
   const [caseItem, setCaseItem] = useState<CaseItem | null>(null);
   const [evidenceList, setEvidenceList] = useState<EvidenceItem[]>([]);
   const [report, setReport] = useState<VerificationReport | null>(null);
+  const [showGraphModal, setShowGraphModal] = useState(false);
 
   // UX states
   const [loading, setLoading] = useState(true);
@@ -236,13 +239,23 @@ export const CaseDetailPage: React.FC = () => {
 
           <div className="flex items-center gap-3">
             {report && (
-              <Link
-                to={`/cases/${caseId}/verification`}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs font-display text-white transition"
-              >
-                <FileText className="w-3.5 h-3.5 text-[#FF6D29]" />
-                <span>View Full Verification Report</span>
-              </Link>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowGraphModal(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-[#FF6D29]/30 text-xs font-display text-[#FFA776] hover:text-white transition cursor-pointer"
+                >
+                  <Network className="w-3.5 h-3.5 text-[#FF6D29]" />
+                  <span>Proof Graph</span>
+                </button>
+                <Link
+                  to={`/cases/${caseId}/verification`}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs font-display text-white transition"
+                >
+                  <FileText className="w-3.5 h-3.5 text-[#FF6D29]" />
+                  <span>Verification Report</span>
+                </Link>
+              </>
             )}
             <button
               onClick={handleStartVerification}
@@ -587,6 +600,15 @@ export const CaseDetailPage: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Interactive Proof Graph Modal */}
+      {caseItem && (
+        <ProofGraphModal
+          caseId={caseId!}
+          isOpen={showGraphModal}
+          onClose={() => setShowGraphModal(false)}
+        />
+      )}
     </GlowBackground>
   );
 };
