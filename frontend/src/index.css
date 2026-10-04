@@ -1,3 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Instrument Sans", sans-serif;
+  --font-sans: "Instrument Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --color-proof-black: #080808;
+  --color-proof-charcoal: #141414;
+  --color-proof-offwhite: #F4F1EA;
+  --color-proof-gray: #9B9993;
+  --color-proof-orange: #C75A32;
+  --color-proof-vermillion: #E15B35;
+}
+
 /* Reset and standard clean design */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -6,9 +21,9 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-  background-color: #ffffff;
-  color: #000000;
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #080808;
+  color: #F4F1EA;
   -webkit-font-smoothing: antialiased;
 }
 

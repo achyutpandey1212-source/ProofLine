@@ -70,8 +70,8 @@ export interface EvidenceItem {
     sizeBytes: number;
   };
   status: EvidenceStatus;
-  extraction: {
-    status: "PENDING" | "EXTRACTED" | "FAILED" | "UNCERTAIN";
+  extraction?: {
+    status?: "PENDING" | "EXTRACTED" | "FAILED" | "UNCERTAIN";
     confidence?: number;
     warnings?: string[];
     data?: Record<string, unknown>;

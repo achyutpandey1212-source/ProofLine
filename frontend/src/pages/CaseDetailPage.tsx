@@ -627,7 +627,7 @@ export const CaseDetailPage: React.FC = () => {
                           </span>
                         </td>
                         <td className="px-4 py-2.5 text-right font-mono text-xs">
-                          {ev.extraction.data ? (
+                          {ev.extraction?.data ? (
                             <span>
                               {typeof ev.extraction.data["weight"] === "number"
                                 ? `${ev.extraction.data["weight"]} kg`
