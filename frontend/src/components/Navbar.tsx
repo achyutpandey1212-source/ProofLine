@@ -55,6 +55,16 @@ export const Navbar: React.FC = () => {
           >
             Console
           </Link>
+          <Link
+            to="/playground"
+            className={`px-3.5 sm:px-4 py-1.5 rounded-full transition-all ${
+              location.pathname === "/playground"
+                ? "bg-white/[0.08] text-white font-medium border border-white/10"
+                : "text-[#BABABA] hover:text-white hover:bg-white/[0.04]"
+            }`}
+          >
+            Playground
+          </Link>
         </div>
 
         {/* User Status / Actions */}

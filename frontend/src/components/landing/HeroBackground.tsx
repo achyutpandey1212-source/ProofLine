@@ -24,7 +24,6 @@ export const HeroBackground: React.FC<HeroBackgroundProps> = ({
           ref={videoRef}
           autoPlay
           muted
-          loop
           playsInline
           preload="auto"
           className="w-full h-full object-cover object-[center_62%] md:object-[center_60%] lg:object-center will-change-transform"
