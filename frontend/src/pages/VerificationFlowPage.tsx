@@ -352,7 +352,17 @@ export const VerificationFlowPage: React.FC = () => {
                   <div className="text-xs font-medium text-white flex items-center justify-between">
                     <span>Reconciling measurements</span>
                     {stage4Status === "completed" && (
-                      <span className="text-[11px] font-mono text-emerald-400">0.79% Variance</span>
+                      <span
+                        className={`text-[11px] font-mono ${
+                          (report?.calculatedValues?.variancePercentage ?? 0) <= 2.0
+                            ? "text-emerald-400"
+                            : "text-[#FFA776]"
+                        }`}
+                      >
+                        {report?.calculatedValues?.variancePercentage !== undefined
+                          ? `${report.calculatedValues.variancePercentage}% Variance`
+                          : "Reconciled"}
+                      </span>
                     )}
                   </div>
                   <p className="text-[11px] text-[#BABABA] mt-0.5">
