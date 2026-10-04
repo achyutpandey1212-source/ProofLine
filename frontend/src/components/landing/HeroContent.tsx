@@ -34,9 +34,12 @@ export const HeroContent: React.FC<HeroContentProps> = ({
           <span className="block overflow-hidden pb-3">
             <span
               ref={headlineLine2Ref}
-              className="block bg-gradient-to-r from-proof-offwhite via-proof-offwhite to-proof-vermillion/90 bg-clip-text text-transparent"
+              className="block text-proof-offwhite"
             >
-              not promises.
+              not{" "}
+              <span className="font-serif italic font-normal text-[#FFA776] bg-gradient-to-r from-[#FFD2B8] via-[#FF8A50] to-[#FF6D29] bg-clip-text text-transparent">
+                promises.
+              </span>
             </span>
           </span>
         </h1>

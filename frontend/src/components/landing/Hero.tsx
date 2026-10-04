@@ -169,27 +169,21 @@ export const Hero: React.FC = () => {
         );
       }
 
-      // 3. Header background transition on scroll
+      // 3. Header background subtle transition on scroll (floating glassmorphism preserved)
       if (navRef.current) {
         ScrollTrigger.create({
           trigger: containerRef.current,
           start: "15% top",
           onEnter: () => {
             gsap.to(navRef.current, {
-              backgroundColor: "rgba(8, 8, 8, 0.85)",
-              backdropFilter: "blur(12px)",
-              borderColor: "rgba(244, 241, 234, 0.08)",
-              borderBottomWidth: "1px",
-              duration: 0.4,
+              y: 0,
+              duration: 0.3,
             });
           },
           onLeaveBack: () => {
             gsap.to(navRef.current, {
-              backgroundColor: "rgba(8, 8, 8, 0)",
-              backdropFilter: "blur(0px)",
-              borderColor: "rgba(244, 241, 234, 0)",
-              borderBottomWidth: "0px",
-              duration: 0.4,
+              y: 0,
+              duration: 0.3,
             });
           },
         });

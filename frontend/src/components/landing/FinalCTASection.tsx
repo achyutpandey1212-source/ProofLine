@@ -111,7 +111,11 @@ export const FinalCTASection: React.FC = () => {
         */}
         <div className="relative z-10 my-16 sm:my-20 flex flex-col items-center text-center">
           <h3 className="font-display text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-white mb-3 max-w-2xl leading-tight">
-            Ready to verify real-world transactions?
+            Ready to verify{" "}
+            <span className="font-serif italic font-normal text-[#FFA776] bg-gradient-to-r from-[#FFD2B8] via-[#FF8A50] to-[#FF6D29] bg-clip-text text-transparent">
+              real-world
+            </span>{" "}
+            transactions?
           </h3>
           <p className="font-display text-base sm:text-lg text-[#BABABA] max-w-lg mb-8 leading-relaxed">
             Proofline turns physical manifests, scale tickets, and ERP slips into audited proof.

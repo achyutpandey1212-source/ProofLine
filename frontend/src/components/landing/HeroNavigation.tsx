@@ -1,61 +1,88 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ProoflineIcon } from "../icons/ProoflineIcon";
+import { LogOut } from "lucide-react";
 
 interface HeroNavigationProps {
   navRef: React.RefObject<HTMLElement | null>;
 }
 
 export const HeroNavigation: React.FC<HeroNavigationProps> = ({ navRef }) => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const location = useLocation();
+
+  const isCases = location.pathname.startsWith("/cases");
+  const isHome = location.pathname === "/";
 
   return (
     <header
       ref={navRef}
-      className="fixed top-0 left-0 w-full z-40 transition-colors duration-300"
+      className="fixed top-6 left-0 w-full z-40 px-4 sm:px-6 pointer-events-none transition-colors duration-300"
     >
-      <div className="max-w-7xl mx-auto px-6 sm:px-12 h-20 sm:h-24 flex items-center justify-between">
+      <nav className="pointer-events-auto max-w-5xl mx-auto h-14 sm:h-16 px-4 sm:px-6 rounded-full bg-[#120F12]/80 border border-white/10 backdrop-blur-xl shadow-[0_16px_36px_rgba(0,0,0,0.65)] flex items-center justify-between transition-all">
         {/* Brand: [Proofline icon] PROOFLINE */}
         <Link
           to="/"
-          className="group inline-flex items-center gap-3.5 font-display tracking-[0.2em] text-sm sm:text-base font-semibold uppercase text-proof-offwhite hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-proof-vermillion"
+          className="group inline-flex items-center gap-3 font-display tracking-[0.16em] text-xs sm:text-sm font-semibold uppercase text-proof-offwhite hover:text-white transition-colors"
         >
           <ProoflineIcon
-            size={40}
+            size={28}
             className="transition-transform duration-300 group-hover:scale-105"
           />
-          <span>PROOFLINE</span>
+          <span className="tracking-[0.18em]">PROOFLINE</span>
         </Link>
 
-        {/* Minimal Navigation links: subtle editorial text */}
-        <nav className="hidden md:flex items-center gap-8 font-display text-[13px] text-proof-gray font-normal tracking-wide">
-          <Link to="/cases" className="hover:text-proof-offwhite transition-colors duration-200">
+        {/* Navigation Links: Strict order "Home" at start/left, then "Console" */}
+        <div className="flex items-center gap-1 sm:gap-2 font-display text-xs sm:text-sm">
+          <Link
+            to="/"
+            className={`px-3.5 sm:px-4 py-1.5 rounded-full transition-all ${
+              isHome
+                ? "bg-white/[0.08] text-white font-medium border border-white/10"
+                : "text-[#BABABA] hover:text-white hover:bg-white/[0.04]"
+            }`}
+          >
+            Home
+          </Link>
+          <Link
+            to="/cases"
+            className={`px-3.5 sm:px-4 py-1.5 rounded-full transition-all ${
+              isCases
+                ? "bg-white/[0.08] text-white font-medium border border-white/10"
+                : "text-[#BABABA] hover:text-white hover:bg-white/[0.04]"
+            }`}
+          >
             Console
           </Link>
-          <a href="#footer" className="hover:text-proof-offwhite transition-colors duration-200">
-            About
-          </a>
-        </nav>
+        </div>
 
-        {/* Minimal Right Action: Sign In & Console / Get Started */}
-        <div className="flex items-center gap-4 sm:gap-6 font-display">
-          {!user && (
+        {/* User Status / Actions */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {user ? (
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="hidden md:inline-block text-xs font-display text-[#BABABA] max-w-[140px] truncate">
+                {user.email}
+              </span>
+              <button
+                onClick={() => signOut()}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 text-xs font-display text-[#BABABA] hover:text-white transition-all cursor-pointer"
+                title="Sign Out"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </button>
+            </div>
+          ) : (
             <Link
               to="/login"
-              className="text-xs sm:text-[13px] tracking-wide text-proof-gray hover:text-proof-offwhite transition-colors font-medium hidden sm:inline-block"
+              className="px-4 py-1.5 rounded-full bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium shadow-[0_0_18px_rgba(255,109,41,0.4)] hover:shadow-[0_0_24px_rgba(255,109,41,0.6)] transition-all"
             >
               Sign In
             </Link>
           )}
-          <Link
-            to={user ? "/cases" : "/cases"}
-            className="text-xs sm:text-[13px] tracking-[0.06em] font-medium text-proof-offwhite px-4 py-2 border border-proof-offwhite/20 hover:border-proof-offwhite/45 transition-all duration-200 bg-proof-charcoal/60 backdrop-blur-sm rounded-[10px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-proof-vermillion"
-          >
-            {user ? "Console" : "Get started"}
-          </Link>
         </div>
-      </div>
+      </nav>
     </header>
   );
 };
