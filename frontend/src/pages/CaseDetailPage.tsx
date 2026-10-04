@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Header } from "../components/Header";
+import { Navbar } from "../components/Navbar";
+import { GlowBackground } from "../components/ui/GlowBackground";
+import { CustomSelect } from "../components/ui/CustomSelect";
 import { CaseService } from "../services/case.service";
 import { EvidenceService } from "../services/evidence.service";
 import { VerificationClientService } from "../services/verification.service";
@@ -26,6 +28,17 @@ import {
   Sparkles,
 } from "lucide-react";
 import { DemoManager } from "../demo/demoRunner";
+
+const EVIDENCE_TYPE_OPTIONS = [
+  { value: "SCALE_IMAGE", label: "Scale Image (Display Weighing)" },
+  { value: "INVOICE", label: "Commercial Invoice" },
+  { value: "RECEIPT", label: "Weighbridge / Cash Receipt" },
+  { value: "CERTIFICATE", label: "Recycling Certificate" },
+  { value: "MATERIAL_IMAGE", label: "Material Photo" },
+  { value: "DOCUMENT", label: "Supporting Document" },
+  { value: "VIDEO", label: "Video Evidence" },
+  { value: "OTHER", label: "Other Evidence" },
+];
 
 export const CaseDetailPage: React.FC = () => {
   const { caseId } = useParams<{ caseId: string }>();
@@ -73,7 +86,6 @@ export const CaseDetailPage: React.FC = () => {
       setCaseItem(cData);
       setEvidenceList(eData);
 
-      // If verified or review required, attempt to fetch verification report
       if (cData.status === "VERIFICATION_COMPLETE" || cData.status === "REVIEW_REQUIRED") {
         try {
           const rData = await VerificationClientService.getReport(caseId);
@@ -109,7 +121,6 @@ export const CaseDetailPage: React.FC = () => {
           stopPolling();
           setVerifying(false);
 
-          // Refresh case data and report
           const updatedCase = await CaseService.getCase(caseId);
           setCaseItem(updatedCase);
           const updatedEvidence = await EvidenceService.listEvidence(caseId);
@@ -139,13 +150,11 @@ export const CaseDetailPage: React.FC = () => {
 
       await EvidenceService.uploadEvidence(caseId, selectedFile, selectedType);
 
-      // Clear input & refresh list
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       const updatedEvidence = await EvidenceService.listEvidence(caseId);
       setEvidenceList(updatedEvidence);
 
-      // Refresh case status
       const updatedCase = await CaseService.getCase(caseId);
       setCaseItem(updatedCase);
     } catch (err) {
@@ -222,30 +231,30 @@ export const CaseDetailPage: React.FC = () => {
     switch (status) {
       case "VERIFICATION_COMPLETE":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 border border-black text-xs font-mono font-bold uppercase">
-            <CheckCircle2 className="w-3.5 h-3.5 text-black" />
-            <span>VERIFIED</span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-display font-medium">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Verified</span>
           </span>
         );
       case "REVIEW_REQUIRED":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 border border-black text-xs font-mono font-bold uppercase underline">
-            <AlertTriangle className="w-3.5 h-3.5 text-black" />
-            <span>REVIEW REQUIRED</span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#FF6D29]/35 bg-[#FF6D29]/15 text-[#FFA776] text-xs font-display font-medium">
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span>Review Required</span>
           </span>
         );
       case "PROCESSING":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 border border-gray-400 text-xs font-mono uppercase text-gray-700">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs font-display font-medium">
             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-            <span>IN PROGRESS</span>
+            <span>In Progress</span>
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 border border-gray-300 text-xs font-mono uppercase text-gray-500">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] text-[#BABABA] text-xs font-display font-medium">
             <Clock className="w-3.5 h-3.5" />
-            <span>{status || "CREATED"}</span>
+            <span>{status || "Created"}</span>
           </span>
         );
     }
@@ -253,68 +262,74 @@ export const CaseDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex flex-col font-sans">
-        <Header />
+      <GlowBackground className="flex flex-col min-h-screen">
+        <Navbar />
         <div className="flex-1 flex items-center justify-center p-8">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs font-mono text-gray-600">LOADING_CASE_RECORD...</p>
+          <div className="rounded-3xl bg-[#141215]/85 border border-white/10 p-12 text-center backdrop-blur-xl">
+            <RefreshCw className="w-6 h-6 text-[#FF6D29] animate-spin mx-auto mb-3" />
+            <p className="text-xs font-display text-[#BABABA]">Loading case record...</p>
           </div>
         </div>
-      </div>
+      </GlowBackground>
     );
   }
 
   if (!caseItem) {
     return (
-      <div className="min-h-screen bg-white flex flex-col font-sans">
-        <Header />
-        <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-          <div className="w-10 h-10 border border-black mx-auto mb-3 flex items-center justify-center">
-            <AlertCircle className="w-5 h-5 text-black" />
-          </div>
-          <h2 className="text-base font-bold text-black font-mono">CASE_NOT_FOUND</h2>
-          <p className="text-xs text-gray-600 mt-1">The requested verification record could not be found.</p>
-          <div className="mt-6">
-            <Link to="/cases" className="text-xs font-mono underline hover:no-underline text-black">
-              RETURN_TO_INDEX
+      <GlowBackground className="flex flex-col min-h-screen">
+        <Navbar />
+        <div className="max-w-md mx-auto px-4 py-16 text-center">
+          <div className="rounded-3xl bg-[#141215]/85 border border-white/10 p-10 backdrop-blur-xl">
+            <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 mx-auto mb-3 flex items-center justify-center text-red-400">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <h2 className="text-base font-display font-medium text-white">Case Not Found</h2>
+            <p className="text-xs font-display text-[#BABABA] mt-1 mb-5">
+              The requested verification record could not be found.
+            </p>
+            <Link
+              to="/cases"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs font-display text-white transition"
+            >
+              Return to Cases
             </Link>
           </div>
         </div>
-      </div>
+      </GlowBackground>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans">
-      <Header />
+    <GlowBackground className="flex flex-col min-h-screen">
+      {/* Reusable floating cylindrical glassmorphism Navbar */}
+      <Navbar />
 
-      <main className="max-w-6xl w-full mx-auto px-4 py-8 flex-1 space-y-6">
-        {/* Navigation Breadcrumb & Actions */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-black">
+      <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-20 flex-1 space-y-6 sm:space-y-8">
+        {/* Navigation Breadcrumb & Engine Trigger */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
           <Link
             to="/cases"
-            className="inline-flex items-center gap-1.5 text-xs font-mono text-gray-700 hover:text-black transition"
+            className="inline-flex items-center gap-2 text-xs font-display text-[#BABABA] hover:text-white transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>BACK_TO_CASES</span>
+            <span>Back to Cases</span>
           </Link>
 
           <div className="flex items-center gap-3">
             <button
               onClick={handleStartVerification}
               disabled={verifying || evidenceList.length === 0}
-              className="inline-flex items-center gap-2 px-4 py-2 border border-black bg-black text-white hover:bg-white hover:text-black disabled:opacity-50 text-xs font-mono transition cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white disabled:opacity-40 text-xs font-display font-medium shadow-[0_0_20px_rgba(255,109,41,0.35)] hover:shadow-[0_0_28px_rgba(255,109,41,0.55)] transition-all cursor-pointer"
             >
               {verifying ? (
                 <>
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>VERIFYING_EVIDENCE...</span>
+                  <span>Verifying Evidence...</span>
                 </>
               ) : (
                 <>
-                  <Play className="w-3.5 h-3.5" />
-                  <span>RUN VERIFICATION ENGINE</span>
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>Run Verification Engine</span>
                 </>
               )}
             </button>
@@ -322,130 +337,150 @@ export const CaseDetailPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="p-3 border border-black bg-gray-50 flex items-center gap-3 text-xs font-mono">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>[ERROR]: {error}</span>
+          <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center gap-2.5 text-xs text-red-300 font-display">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
-        {/* Section A: Case Information */}
-        <div className="border border-black p-6 bg-white">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-300 pb-4 mb-4">
+        {/* Section A: Case Overview Glass Card */}
+        <div className="rounded-3xl bg-[#141215]/85 border border-white/10 p-6 sm:p-8 shadow-[0_20px_45px_rgba(0,0,0,0.7)] backdrop-blur-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5 mb-5">
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-xl font-bold text-black font-mono tracking-tight">
-                  {caseItem.caseId}
+                <h1 className="text-xl sm:text-2xl font-display font-semibold text-white tracking-tight">
+                  {caseItem.transactionId}
                 </h1>
                 {renderStatusBadge(caseItem.status)}
               </div>
-              <p className="text-xs font-mono text-gray-600 mt-1">Transaction Ref: {caseItem.transactionId}</p>
+              <p className="text-xs font-mono text-[#BABABA] mt-1">ID: {caseItem.caseId}</p>
             </div>
 
             {caseItem.riskLevel && (
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono text-gray-500 uppercase">RISK_ASSESSMENT:</span>
-                <span className="text-xs font-mono font-bold border border-black px-2 py-0.5">
-                  [{caseItem.riskLevel}]
+                <span className="text-xs font-display text-[#BABABA]">Risk Assessment:</span>
+                <span
+                  className={`text-xs font-mono font-medium px-2.5 py-0.5 rounded-full border ${
+                    caseItem.riskLevel === "LOW"
+                      ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                      : "text-[#FFA776] bg-[#FF6D29]/15 border-[#FF6D29]/30"
+                  }`}
+                >
+                  {caseItem.riskLevel}
                 </span>
               </div>
             )}
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-sans">
-            <div className="border border-gray-200 p-3">
-              <span className="text-xs text-gray-500 font-mono uppercase block mb-1">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 font-display">
+            <div className="rounded-2xl bg-black/40 border border-white/[0.06] p-3.5">
+              <span className="text-[11px] text-[#BABABA] uppercase tracking-wider block mb-1">
                 Partner / Recycler
               </span>
-              <span className="font-bold text-black">{caseItem.partnerName}</span>
+              <span className="font-medium text-white text-xs sm:text-sm">{caseItem.partnerName}</span>
             </div>
-            <div className="border border-gray-200 p-3">
-              <span className="text-xs text-gray-500 font-mono uppercase block mb-1">
+            <div className="rounded-2xl bg-black/40 border border-white/[0.06] p-3.5">
+              <span className="text-[11px] text-[#BABABA] uppercase tracking-wider block mb-1">
                 Material
               </span>
-              <span className="font-bold text-black">{caseItem.material}</span>
+              <span className="font-medium text-white text-xs sm:text-sm">{caseItem.material}</span>
             </div>
-            <div className="border border-gray-200 p-3">
-              <span className="text-xs text-gray-500 font-mono uppercase block mb-1">
+            <div className="rounded-2xl bg-black/40 border border-white/[0.06] p-3.5">
+              <span className="text-[11px] text-[#BABABA] uppercase tracking-wider block mb-1">
                 Claimed Quantity
               </span>
-              <span className="font-bold text-black font-mono">
+              <span className="font-mono font-medium text-white text-xs sm:text-sm">
                 {caseItem.claimedQuantity.toLocaleString()} {caseItem.unit}
               </span>
             </div>
-            <div className="border border-gray-200 p-3">
-              <span className="text-xs text-gray-500 font-mono uppercase block mb-1">
+            <div className="rounded-2xl bg-black/40 border border-white/[0.06] p-3.5">
+              <span className="text-[11px] text-[#BABABA] uppercase tracking-wider block mb-1">
                 Evidence Files
               </span>
-              <span className="font-bold text-black font-mono">{evidenceList.length} item(s)</span>
+              <span className="font-mono font-medium text-white text-xs sm:text-sm">
+                {evidenceList.length} item(s)
+              </span>
             </div>
           </div>
         </div>
 
         {/* Live Verification Progress Panel */}
         {verifying && (
-          <div className="border border-black p-4 bg-gray-50">
-            <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-300">
-              <div className="flex items-center gap-2 font-mono text-xs font-bold">
-                <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                <span>ORCHESTRATION_PIPELINE: ACTIVE</span>
+          <div className="rounded-3xl bg-gradient-to-r from-[#1c1418] to-[#141215] border border-[#FF6D29]/30 p-5 shadow-[0_16px_36px_rgba(255,109,41,0.1)] backdrop-blur-xl">
+            <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-white/10">
+              <div className="flex items-center gap-2 font-display text-xs font-medium text-[#FFA776]">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#FF6D29]" />
+                <span>Verification Engine Active</span>
               </div>
-              <span className="text-xs font-mono text-gray-600">RESUMABLE_WORKFLOW</span>
+              <span className="text-[11px] font-mono text-[#BABABA]">Live Pipeline</span>
             </div>
-            <p className="text-xs font-mono text-black">
-              &gt; {getWorkflowStepLabel(workflowProgress?.step)}
+            <p className="text-xs font-display text-white">
+              {getWorkflowStepLabel(workflowProgress?.step)}
             </p>
             {workflowProgress && (
-              <div className="mt-3 border border-gray-300 p-2 flex items-center justify-between text-xs font-mono text-gray-700 bg-white">
-                <span>PROGRESS: {workflowProgress.processedEvidence} / {workflowProgress.totalEvidence} EVIDENCE PROCESSED</span>
+              <div className="mt-3 rounded-xl bg-black/40 border border-white/[0.06] p-2.5 flex items-center justify-between text-xs font-mono text-[#BABABA]">
+                <span>Progress: {workflowProgress.processedEvidence} / {workflowProgress.totalEvidence} processed</span>
                 {workflowProgress.retryCount > 0 && (
-                  <span>RETRIES: {workflowProgress.retryCount}</span>
+                  <span>Retries: {workflowProgress.retryCount}</span>
                 )}
               </div>
             )}
           </div>
         )}
 
-        {/* Section E & F: Verification Result & Findings (When Completed) */}
+        {/* Section B: Verification Result & Findings (When Completed) */}
         {report && (
-          <div className="border border-black p-6 bg-white space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-black pb-4">
-              <div>
-                <h2 className="text-base font-bold text-black flex items-center gap-2 font-mono uppercase">
-                  <Scale className="w-4 h-4 text-black" />
-                  <span>Reconciliation & Verification Results</span>
-                </h2>
-                <p className="text-xs text-gray-600 mt-0.5">
-                  Automated deterministic comparison across submitted evidence
-                </p>
+          <div className="rounded-3xl bg-[#141215]/85 border border-white/10 p-6 sm:p-8 space-y-6 shadow-[0_20px_45px_rgba(0,0,0,0.7)] backdrop-blur-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#FF6D29]/15 border border-[#FF6D29]/30 flex items-center justify-center text-[#FF6D29]">
+                  <Scale className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-base font-display font-semibold text-white tracking-tight">
+                    Reconciliation Results
+                  </h2>
+                  <p className="text-xs font-display text-[#BABABA]">
+                    Deterministic comparison across submitted evidence
+                  </p>
+                </div>
               </div>
               {renderStatusBadge(caseItem.status)}
             </div>
 
             {/* Calculated Values Summary */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 border border-black bg-gray-50">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-5 rounded-2xl bg-black/40 border border-white/[0.08] font-display">
               <div>
-                <span className="text-xs font-mono text-gray-600 uppercase block mb-1">Claimed Weight</span>
-                <span className="text-base font-bold text-black font-mono">
+                <span className="text-[11px] text-[#BABABA] uppercase tracking-wider block mb-1">
+                  Claimed Weight
+                </span>
+                <span className="text-base font-mono font-medium text-white">
                   {report.calculatedValues.claimedWeight ?? "—"} {report.calculatedValues.unit || "kg"}
                 </span>
               </div>
               <div>
-                <span className="text-xs font-mono text-gray-600 uppercase block mb-1">Measured Weight</span>
-                <span className="text-base font-bold text-black font-mono">
+                <span className="text-[11px] text-[#BABABA] uppercase tracking-wider block mb-1">
+                  Measured Weight
+                </span>
+                <span className="text-base font-mono font-medium text-white">
                   {report.calculatedValues.measuredWeight ?? "—"} {report.calculatedValues.unit || "kg"}
                 </span>
               </div>
               <div>
-                <span className="text-xs font-mono text-gray-600 uppercase block mb-1">Difference</span>
-                <span className="text-base font-bold text-black font-mono">
+                <span className="text-[11px] text-[#BABABA] uppercase tracking-wider block mb-1">
+                  Difference
+                </span>
+                <span className="text-base font-mono font-medium text-white">
                   {report.calculatedValues.differenceWeight !== undefined
                     ? `${Math.abs(report.calculatedValues.differenceWeight)} kg`
                     : "—"}
                 </span>
               </div>
               <div>
-                <span className="text-xs font-mono text-gray-600 uppercase block mb-1">Variance</span>
-                <span className="text-base font-bold text-black font-mono">
+                <span className="text-[11px] text-[#BABABA] uppercase tracking-wider block mb-1">
+                  Variance
+                </span>
+                <span className="text-base font-mono font-medium text-[#FFA776]">
                   {report.calculatedValues.variancePercentage !== undefined
                     ? `${report.calculatedValues.variancePercentage}%`
                     : "—"}
@@ -455,39 +490,39 @@ export const CaseDetailPage: React.FC = () => {
 
             {/* Findings List */}
             <div>
-              <div className="font-mono text-xs font-bold text-gray-700 uppercase mb-3 border-b border-gray-300 pb-1">
-                DISCREPANCY_FINDINGS ({report.findings.length})
+              <div className="font-display text-xs font-medium text-[#BABABA] uppercase tracking-wider mb-3">
+                Findings ({report.findings.length})
               </div>
               {report.findings.length === 0 ? (
-                <div className="p-4 border border-black bg-white flex items-center gap-3 text-xs font-mono">
-                  <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-black" />
-                  <span>ALL WEIGHING SLIP READINGS MATCH WITHIN THE 2.0% TOLERANCE THRESHOLD. NO DISCREPANCIES DETECTED.</span>
+                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3 text-xs font-display text-emerald-300">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                  <span>All measurements match within the 2.0% tolerance threshold. No discrepancies detected.</span>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {report.findings.map((f) => (
                     <div
                       key={f.findingId}
-                      className="p-4 border border-black bg-white"
+                      className="p-4 rounded-2xl bg-black/40 border border-white/[0.08]"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-2">
-                          <AlertTriangle className="w-4 h-4 flex-shrink-0 text-black" />
-                          <h3 className="font-bold text-sm text-black">{f.title}</h3>
+                          <AlertTriangle className="w-4 h-4 shrink-0 text-[#FFA776]" />
+                          <h3 className="font-medium text-sm text-white font-display">{f.title}</h3>
                         </div>
-                        <span className="text-xs font-mono font-bold border border-black px-2 py-0.5">
-                          [{f.severity}]
+                        <span className="text-[11px] font-mono px-2 py-0.5 rounded-full border border-white/10 bg-white/[0.04] text-[#BABABA]">
+                          {f.severity}
                         </span>
                       </div>
-                      <p className="mt-2 text-xs text-gray-800 leading-relaxed">{f.description}</p>
+                      <p className="mt-2 text-xs text-[#BABABA] font-display leading-relaxed">{f.description}</p>
                       {f.recommendedAction && (
-                        <div className="mt-2 text-xs text-gray-600">
-                          <span className="font-mono font-bold uppercase">ACTION REQUIRED:</span> {f.recommendedAction}
+                        <div className="mt-2 text-xs font-display text-[#FFA776]">
+                          <span className="font-medium">Action:</span> {f.recommendedAction}
                         </div>
                       )}
                       {f.evidenceIds && f.evidenceIds.length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-gray-200 text-xs font-mono text-gray-500">
-                          PROVENANCE: {f.evidenceIds.join(", ")}
+                        <div className="mt-2 pt-2 border-t border-white/[0.06] text-[11px] font-mono text-[#BABABA]/60">
+                          Provenance: {f.evidenceIds.join(", ")}
                         </div>
                       )}
                     </div>
@@ -498,82 +533,72 @@ export const CaseDetailPage: React.FC = () => {
           </div>
         )}
 
-        {/* Section B & C: Evidence Upload & List */}
-        <div className="border border-black p-6 bg-white space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-black pb-4">
+        {/* Section C: Evidence Catalog & Intake */}
+        <div className="rounded-3xl bg-[#141215]/85 border border-white/10 p-6 sm:p-8 space-y-6 shadow-[0_20px_45px_rgba(0,0,0,0.7)] backdrop-blur-xl">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
             <div>
-              <div className="font-mono text-xs text-gray-500 mb-1">EVIDENCE_CATALOG</div>
-              <h2 className="text-base font-bold text-black uppercase font-mono">Document Intake & Provenance</h2>
-              <p className="text-xs text-gray-600 mt-0.5">
-                Attach weighing slips, scale photos, and commercial invoices for deterministic verification.
+              <h2 className="text-base font-display font-semibold text-white tracking-tight">
+                Document Intake & Provenance
+              </h2>
+              <p className="text-xs font-display text-[#BABABA] mt-0.5">
+                Attach weighing slips, scale photos, and commercial invoices
               </p>
             </div>
             <button
               type="button"
               onClick={handleUploadDemoEvidence}
               disabled={uploading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-black bg-gray-50 hover:bg-black hover:text-white disabled:opacity-50 text-xs font-mono font-bold transition cursor-pointer"
-              title="Uploads synthetic invoice and 3 scale images (184.6 kg, 193.2 kg, 177.8 kg)"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-display text-[#FFA776] hover:text-white disabled:opacity-50 transition cursor-pointer"
+              title="Uploads synthetic invoice and 3 scale images"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>LOAD DEMO EVIDENCE (4 FILES)</span>
+              <Sparkles className="w-3.5 h-3.5 text-[#FF6D29]" />
+              <span>Load Demo Evidence (4 Files)</span>
             </button>
           </div>
 
           {/* Upload Form */}
           <form
             onSubmit={handleFileUpload}
-            className="p-4 border border-black bg-white space-y-4"
+            className="p-5 rounded-2xl bg-black/40 border border-white/[0.08] space-y-4 font-display"
           >
-            <div className="font-mono text-xs font-bold uppercase">ADD_DOCUMENT</div>
-
             {uploadError && (
-              <div className="p-2 border border-black bg-gray-50 text-xs font-mono flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <span>[ERROR]: {uploadError}</span>
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-300 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{uploadError}</span>
               </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-mono uppercase text-gray-700 mb-1">
-                  Evidence Classification
+                <label className="block text-xs text-[#BABABA] mb-1.5 font-medium">
+                  Classification
                 </label>
-                <select
+                <CustomSelect
+                  options={EVIDENCE_TYPE_OPTIONS}
                   value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value as EvidenceType)}
-                  className="w-full px-3 py-2 border border-black bg-white text-xs font-mono text-black"
-                >
-                  <option value="SCALE_IMAGE">Scale Image (Weighing display)</option>
-                  <option value="INVOICE">Commercial Invoice</option>
-                  <option value="RECEIPT">Weighbridge / Cash Receipt</option>
-                  <option value="CERTIFICATE">Recycling Certificate</option>
-                  <option value="MATERIAL_IMAGE">Material Photo</option>
-                  <option value="DOCUMENT">Supporting Document</option>
-                  <option value="VIDEO">Video Evidence</option>
-                  <option value="OTHER">Other Evidence</option>
-                </select>
+                  onChange={(val) => setSelectedType(val as EvidenceType)}
+                />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-mono uppercase text-gray-700 mb-1">
+                <label className="block text-xs text-[#BABABA] mb-1.5 font-medium">
                   File Attachment (JPEG, PNG, WEBP, PDF)
                 </label>
-                <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex flex-col sm:flex-row gap-2.5">
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept="image/jpeg,image/png,image/webp,application/pdf"
                     onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                    className="flex-1 px-3 py-1.5 border border-black text-xs font-mono text-black bg-white"
+                    className="flex-1 h-11 px-3 py-2 rounded-xl border border-white/10 text-xs font-display text-white bg-black/40 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-white/[0.08] file:text-white cursor-pointer"
                   />
                   <button
                     type="submit"
                     disabled={uploading || !selectedFile}
-                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 border border-black bg-black text-white hover:bg-white hover:text-black disabled:opacity-50 text-xs font-mono transition cursor-pointer"
+                    className="inline-flex items-center justify-center gap-1.5 px-5 h-11 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 hover:border-white/20 text-white disabled:opacity-40 text-xs font-medium transition cursor-pointer shrink-0"
                   >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>{uploading ? "INGESTING..." : "UPLOAD"}</span>
+                    <Upload className="w-3.5 h-3.5 text-[#FF6D29]" />
+                    <span>{uploading ? "Ingesting..." : "Upload File"}</span>
                   </button>
                 </div>
               </div>
@@ -582,72 +607,80 @@ export const CaseDetailPage: React.FC = () => {
 
           {/* Evidence List Table */}
           <div>
-            <div className="font-mono text-xs font-bold text-gray-700 uppercase mb-3">
-              ATTACHED_FILES ({evidenceList.length})
+            <div className="font-display text-xs font-medium text-[#BABABA] uppercase tracking-wider mb-3">
+              Attached Documents ({evidenceList.length})
             </div>
             {evidenceList.length === 0 ? (
-              <div className="p-8 text-center border border-dashed border-gray-400 bg-gray-50 text-xs font-mono text-gray-600">
-                NO EVIDENCE ATTACHED. UPLOAD SCALE IMAGES AND INVOICES ABOVE.
+              <div className="p-8 rounded-2xl text-center border border-dashed border-white/10 bg-black/30 text-xs font-display text-[#BABABA]">
+                No evidence attached yet. Upload scale images and invoices above.
               </div>
             ) : (
-              <div className="border border-black overflow-hidden bg-white">
-                <table className="w-full text-left text-xs text-black border-collapse">
-                  <thead className="bg-gray-100 border-b border-black font-mono uppercase text-gray-700">
+              <div className="rounded-2xl border border-white/10 overflow-hidden bg-black/40">
+                <table className="w-full text-left text-xs text-white border-collapse font-display">
+                  <thead className="bg-white/[0.02] border-b border-white/10 text-[11px] uppercase tracking-wider text-[#BABABA]">
                     <tr>
-                      <th className="px-4 py-2.5">Evidence ID</th>
-                      <th className="px-4 py-2.5">Classification</th>
-                      <th className="px-4 py-2.5">File Name</th>
-                      <th className="px-4 py-2.5 text-center">Status</th>
-                      <th className="px-4 py-2.5 text-right">Extracted Measurement</th>
-                      <th className="px-4 py-2.5 text-right">Asset</th>
+                      <th className="px-4 py-3 font-medium">Evidence ID</th>
+                      <th className="px-4 py-3 font-medium">Classification</th>
+                      <th className="px-4 py-3 font-medium">File Name</th>
+                      <th className="px-4 py-3 font-medium text-center">Status</th>
+                      <th className="px-4 py-3 font-medium text-right">Extracted Measurement</th>
+                      <th className="px-4 py-3 font-medium text-right">Asset</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-white/[0.06]">
                     {evidenceList.map((ev) => (
-                      <tr key={ev._id} className="hover:bg-gray-50 transition border-b border-gray-200">
-                        <td className="px-4 py-2.5 font-mono text-xs font-bold">
+                      <tr key={ev._id} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="px-4 py-3 font-mono font-medium text-white">
                           {ev.evidenceId}
                         </td>
-                        <td className="px-4 py-2.5 font-mono">
-                          <span className="border border-gray-400 px-1.5 py-0.5 text-xs">
+                        <td className="px-4 py-3">
+                          <span className="border border-white/10 bg-white/[0.04] px-2 py-0.5 rounded-full text-[11px] text-[#BABABA]">
                             {ev.type}
                           </span>
                         </td>
-                        <td className="px-4 py-2.5 flex items-center gap-1.5">
-                          <FileText className="w-3.5 h-3.5 text-black flex-shrink-0" />
+                        <td className="px-4 py-3 flex items-center gap-2">
+                          <FileText className="w-3.5 h-3.5 text-[#FF6D29] shrink-0" />
                           <span className="truncate max-w-xs">{ev.file.name}</span>
                         </td>
-                        <td className="px-4 py-2.5 text-center font-mono">
-                          <span className="border border-black px-1.5 py-0.5 text-xs uppercase">
+                        <td className="px-4 py-3 text-center font-mono">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[11px] border ${
+                              ev.status === "EXTRACTED"
+                                ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                                : ev.status === "EXTRACTION_FAILED"
+                                ? "text-red-400 bg-red-500/10 border-red-500/20"
+                                : "text-[#BABABA] bg-white/[0.04] border-white/10"
+                            }`}
+                          >
                             {ev.status === "EXTRACTED"
-                              ? "REVIEWED"
+                              ? "Reviewed"
                               : ev.status === "EXTRACTION_FAILED"
-                              ? "FAILED"
-                              : "PENDING"}
+                              ? "Failed"
+                              : "Pending"}
                           </span>
                         </td>
-                        <td className="px-4 py-2.5 text-right font-mono text-xs">
+                        <td className="px-4 py-3 text-right font-mono text-xs">
                           {ev.extraction?.data ? (
-                            <span>
+                            <span className="text-white">
                               {typeof ev.extraction.data["weight"] === "number"
                                 ? `${ev.extraction.data["weight"]} kg`
                                 : typeof ev.extraction.data["quantity"] === "number"
                                 ? `${ev.extraction.data["quantity"]} kg`
-                                : "RECORDED"}
+                                : "Recorded"}
                             </span>
                           ) : (
-                            <span className="text-gray-400">—</span>
+                            <span className="text-[#BABABA]/40">—</span>
                           )}
                         </td>
-                        <td className="px-4 py-2.5 text-right">
+                        <td className="px-4 py-3 text-right">
                           <a
                             href={ev.file.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs font-mono border border-black px-2 py-0.5 hover:bg-black hover:text-white transition"
+                            className="inline-flex items-center gap-1 text-[11px] border border-white/10 hover:border-white/20 bg-white/[0.04] hover:bg-white/[0.08] px-2.5 py-1 rounded-lg text-white transition"
                           >
-                            <span>VIEW</span>
-                            <ExternalLink className="w-3 h-3" />
+                            <span>View</span>
+                            <ExternalLink className="w-3 h-3 text-[#FF6D29]" />
                           </a>
                         </td>
                       </tr>
@@ -659,6 +692,6 @@ export const CaseDetailPage: React.FC = () => {
           </div>
         </div>
       </main>
-    </div>
+    </GlowBackground>
   );
 };
