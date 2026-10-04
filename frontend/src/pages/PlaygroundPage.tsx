@@ -99,19 +99,8 @@ export const PlaygroundPage: React.FC = () => {
     setHistory((prev) => [newItem, ...prev.slice(0, 14)]);
   };
 
-  const handleUseSavedKey = async () => {
-    try {
-      const keys = await ApiKeyService.listKeys();
-      const active = keys.filter((k) => !k.isRevoked);
-      if (active.length > 0) {
-        // Can't reveal hash, inform user to generate new or paste
-        setShowKeyModal(true);
-      } else {
-        setShowKeyModal(true);
-      }
-    } catch {
-      setShowKeyModal(true);
-    }
+  const handleUseSavedKey = () => {
+    setShowKeyModal(true);
   };
 
   // Step 1: Submit POST /api/v1/verifications
@@ -506,6 +495,20 @@ export const PlaygroundPage: React.FC = () => {
               >
                 {savedKeysCount > 0 ? `Manage Keys (${savedKeysCount})` : "Create Key"}
               </button>
+              {!apiKey && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const randHex = Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
+                    const instantKey = `pl_live_${randHex}`;
+                    setApiKey(instantKey);
+                  }}
+                  className="px-3 py-2 rounded-xl bg-[#FF6D29]/15 hover:bg-[#FF6D29]/25 border border-[#FF6D29]/30 text-xs font-display text-[#FFA776] transition cursor-pointer whitespace-nowrap"
+                  title="Generate an instant test key directly into the input"
+                >
+                  Quick Key
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -975,6 +978,9 @@ export const PlaygroundPage: React.FC = () => {
       {/* API Key Modal */}
       <ApiKeyModal
         isOpen={showKeyModal}
+        onKeyCreated={(newKey) => {
+          setApiKey(newKey);
+        }}
         onClose={() => {
           setShowKeyModal(false);
           ApiKeyService.listKeys()

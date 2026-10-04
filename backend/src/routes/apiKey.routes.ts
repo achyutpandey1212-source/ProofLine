@@ -10,5 +10,6 @@ router.use(authenticateToken);
 router.post("/api-keys", ApiKeyManagementController.createKey);
 router.get("/api-keys", ApiKeyManagementController.listKeys);
 router.delete("/api-keys/:keyId", ApiKeyManagementController.revokeKey);
+router.delete("/api-keys/:keyId/permanent", ApiKeyManagementController.deleteKey);
 
 export default router;

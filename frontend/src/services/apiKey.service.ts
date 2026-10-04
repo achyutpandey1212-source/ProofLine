@@ -32,10 +32,18 @@ export class ApiKeyService {
    * Generates a new API key.
    */
   public static async createKey(name: string): Promise<CreatedApiKeyDto> {
-    const res = await ApiClient.post<{ success: boolean; data: CreatedApiKeyDto }>("/api-keys", {
+    const res = await ApiClient.post<any>("/api-keys", {
       name,
     });
-    return res.data;
+    // If ApiClient already unwrapped the response.data object:
+    if (res && res.apiKey) {
+      return res as CreatedApiKeyDto;
+    }
+    // If res still contains the envelope { success: true, data: {...} }:
+    if (res && res.data && res.data.apiKey) {
+      return res.data as CreatedApiKeyDto;
+    }
+    return res as CreatedApiKeyDto;
   }
 
   /**
@@ -43,5 +51,12 @@ export class ApiKeyService {
    */
   public static async revokeKey(keyId: string): Promise<void> {
     await ApiClient.delete<{ success: boolean; message: string }>(`/api-keys/${keyId}`);
+  }
+
+  /**
+   * Permanently deletes an existing API key.
+   */
+  public static async deleteKey(keyId: string): Promise<void> {
+    await ApiClient.delete<{ success: boolean; message: string }>(`/api-keys/${keyId}/permanent`);
   }
 }

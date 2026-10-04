@@ -102,4 +102,17 @@ export class ApiKeyService {
     keyDoc.isRevoked = true;
     await keyDoc.save();
   }
+
+  /**
+   * Permanently deletes an API key from database.
+   */
+  public static async deleteApiKey(
+    userId: mongoose.Types.ObjectId,
+    keyId: string
+  ): Promise<void> {
+    const deleted = await ApiKeyModel.findOneAndDelete({ _id: keyId, userId });
+    if (!deleted) {
+      throw new AppError("API key not found.", 404, "NOT_FOUND");
+    }
+  }
 }

@@ -79,4 +79,30 @@ export class ApiKeyManagementController {
       next(err);
     }
   }
+
+  /**
+   * DELETE /api-keys/:keyId/permanent
+   * Permanently deletes an API key from database.
+   */
+  public static async deleteKey(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new AppError("Authentication required.", 401, "UNAUTHORIZED");
+      }
+
+      const keyId = req.params["keyId"];
+      if (!keyId) {
+        throw new AppError("Key ID is required.", 400, "BAD_REQUEST");
+      }
+
+      await ApiKeyService.deleteApiKey(req.user.userDoc._id, keyId);
+
+      res.status(200).json({
+        success: true,
+        message: "API key deleted permanently.",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
