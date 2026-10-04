@@ -15,6 +15,12 @@ export type CaseStatus =
 
 export type RiskLevel = "LOW" | "REVIEW_REQUIRED" | "HIGH";
 
+export type HumanResolutionState =
+  | "PENDING_REVIEW"
+  | "APPROVED"
+  | "REJECTED"
+  | "CLARIFICATION_REQUESTED";
+
 export interface ICase extends Document {
   caseId: string;
   userId: Types.ObjectId; // References UserModel._id
@@ -26,6 +32,10 @@ export interface ICase extends Document {
   unit: string;
   status: CaseStatus;
   riskLevel?: RiskLevel;
+  resolutionState?: HumanResolutionState;
+  resolutionNote?: string;
+  resolvedBy?: Types.ObjectId;
+  resolvedAt?: Date;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -98,6 +108,24 @@ const CaseSchema = new Schema<ICase>(
     riskLevel: {
       type: String,
       enum: ["LOW", "REVIEW_REQUIRED", "HIGH"],
+    },
+    resolutionState: {
+      type: String,
+      enum: ["PENDING_REVIEW", "APPROVED", "REJECTED", "CLARIFICATION_REQUESTED"],
+      default: "PENDING_REVIEW",
+      index: true,
+    },
+    resolutionNote: {
+      type: String,
+      trim: true,
+      maxlength: 2000,
+    },
+    resolvedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    resolvedAt: {
+      type: Date,
     },
     notes: {
       type: String,

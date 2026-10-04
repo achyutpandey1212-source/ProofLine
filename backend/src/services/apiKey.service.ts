@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import mongoose from "mongoose";
 import { ApiKeyModel, IApiKey } from "../models/apiKey.model";
+import { UserModel } from "../models/user.model";
 import { AppError } from "../middleware/error.middleware";
 
 export interface GeneratedApiKey {
@@ -114,5 +115,24 @@ export class ApiKeyService {
     if (!deleted) {
       throw new AppError("API key not found.", 404, "NOT_FOUND");
     }
+  }
+
+  /**
+   * Generates or fetches a legitimate sandbox API key associated with a demo user
+   * so Playground guest testers have an active, valid, authenticated key in MongoDB.
+   */
+  public static async getOrCreateSandboxKey(): Promise<GeneratedApiKey> {
+    let sandboxUser = await UserModel.findOne({ email: "sandbox.tester@proofline.internal" });
+    if (!sandboxUser) {
+      sandboxUser = await UserModel.create({
+        firebaseUid: "sandbox_guest_tester",
+        email: "sandbox.tester@proofline.internal",
+        name: "Sandbox Guest Reviewer",
+        role: "USER",
+        organization: "Proofline Sandbox Lab",
+      });
+    }
+
+    return this.createApiKey(sandboxUser._id, "Playground Quick Sandbox Key");
   }
 }

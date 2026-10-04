@@ -11,6 +11,7 @@ import {
   createVerificationSchema,
   verificationIdParamSchema,
   uploadApiEvidenceBodySchema,
+  reviewVerificationBodySchema,
 } from "../validators/apiV1.validator";
 import { ZodError } from "zod";
 
@@ -56,6 +57,22 @@ const validateApiV1 = (schemas: {
     }
   };
 };
+
+// Public Playground Sandbox Key Endpoint (Creates legitimate temporary API key for frictionless testing)
+router.get("/sandbox-key", async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { ApiKeyService } = await import("../services/apiKey.service");
+    const generated = await ApiKeyService.getOrCreateSandboxKey();
+    res.status(200).json({
+      apiKey: generated.apiKey,
+      keyPrefix: generated.keyPrefix,
+      name: generated.name,
+      createdAt: generated.createdAt,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 
 // 3. Authenticate with API Key
 router.use(authenticateApiKey);
@@ -104,6 +121,16 @@ router.get(
   "/verifications/:verificationId/proof-packet",
   validateApiV1({ params: verificationIdParamSchema }),
   ApiV1Controller.getProofPacket
+);
+
+// POST /api/v1/verifications/:verificationId/review
+router.post(
+  "/verifications/:verificationId/review",
+  validateApiV1({
+    params: verificationIdParamSchema,
+    body: reviewVerificationBodySchema,
+  }),
+  ApiV1Controller.reviewVerification
 );
 
 // Custom Error Formatter for API v1 to ensure strict error contract

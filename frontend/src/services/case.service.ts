@@ -27,4 +27,18 @@ export class CaseService {
   public static async getProofGraph(caseId: string): Promise<import("../types").ProofGraphDto> {
     return ApiClient.get<import("../types").ProofGraphDto>(`/cases/${caseId}/proof-graph`);
   }
+
+  public static async recordReview(
+    caseId: string,
+    payload: {
+      decision: "APPROVED" | "REJECTED" | "CLARIFICATION_REQUESTED";
+      note?: string;
+    }
+  ): Promise<import("../types").CaseReviewSummary> {
+    return ApiClient.post<import("../types").CaseReviewSummary>(`/cases/${caseId}/review`, payload);
+  }
+
+  public static async getReviewSummary(caseId: string): Promise<import("../types").CaseReviewSummary> {
+    return ApiClient.get<import("../types").CaseReviewSummary>(`/cases/${caseId}/review`);
+  }
 }

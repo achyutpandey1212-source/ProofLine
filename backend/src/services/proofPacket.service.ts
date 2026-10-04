@@ -4,6 +4,8 @@ import { CaseModel, ICase } from "../models/case.model";
 import { EvidenceModel, IEvidence } from "../models/evidence.model";
 import { VerificationModel, IVerification } from "../models/verification.model";
 import { FindingModel, IFinding } from "../models/finding.model";
+import { ReviewDecisionModel, IReviewDecision } from "../models/reviewDecision.model";
+import { UserModel, IUser } from "../models/user.model";
 import { ProofGraphService, ProofGraphDto } from "./proofGraph.service";
 import { AppError } from "../middleware/error.middleware";
 
@@ -13,6 +15,8 @@ export interface ProofPacketData {
   findingDocs: IFinding[];
   evidenceDocs: IEvidence[];
   proofGraph: ProofGraphDto;
+  reviewDecisionDocs: IReviewDecision[];
+  reviewerUser?: IUser | null;
   generatedAt: Date;
   version: string;
 }
@@ -38,10 +42,13 @@ export class ProofPacketService {
       throw new AppError("Verification case not found or access denied.", 404, "NOT_FOUND");
     }
 
-    const [verificationDoc, evidenceDocs, findingDocs] = await Promise.all([
+    const [verificationDoc, evidenceDocs, findingDocs, reviewDecisionDocs] = await Promise.all([
       VerificationModel.findOne({ caseId: caseDoc._id }),
       EvidenceModel.find({ caseId: caseDoc._id }).sort({ createdAt: 1 }),
       FindingModel.find({ caseId: caseDoc._id }).sort({ createdAt: 1 }),
+      ReviewDecisionModel.find({ caseId: caseDoc._id })
+        .sort({ decidedAt: -1 })
+        .populate("reviewedBy", "email name role"),
     ]);
 
     if (!verificationDoc || verificationDoc.status !== "COMPLETED") {
@@ -50,6 +57,11 @@ export class ProofPacketService {
         400,
         "VERIFICATION_NOT_COMPLETE"
       );
+    }
+
+    let reviewerUser: IUser | null = null;
+    if (caseDoc.resolvedBy) {
+      reviewerUser = await UserModel.findById(caseDoc.resolvedBy);
     }
 
     const proofGraph = ProofGraphService.buildGraphFromData({
@@ -65,6 +77,8 @@ export class ProofPacketService {
       findingDocs,
       evidenceDocs,
       proofGraph,
+      reviewDecisionDocs,
+      reviewerUser,
       generatedAt: new Date(),
       version: "1.0.0",
     };
@@ -460,6 +474,98 @@ export class ProofPacketService {
 
           curY += 30;
         });
+
+        // ==========================================
+        // SECTION 7: HUMAN REVIEW & RESOLUTION AUDIT
+        // ==========================================
+        if (curY > 600) {
+          doc.addPage();
+          curY = 55;
+        } else {
+          curY += 16;
+        }
+
+        doc.fillColor(colors.textPrimary).fontSize(11).font("Helvetica-Bold")
+          .text("SECTION 7: HUMAN REVIEW & RESOLUTION DECISION", 40, curY);
+        doc.fillColor(colors.textSecondary).fontSize(8).font("Helvetica")
+          .text(
+            "Distinct human oversight layer recording reviewer actions, notes, and institutional disposition.",
+            40,
+            curY + 14
+          );
+        curY += 30;
+
+        const resolutionState = data.caseDoc.resolutionState || "PENDING_REVIEW";
+        const resColor =
+          resolutionState === "APPROVED"
+            ? colors.emerald
+            : resolutionState === "REJECTED"
+            ? "#EF4444"
+            : resolutionState === "CLARIFICATION_REQUESTED"
+            ? "#EAB308"
+            : colors.textSecondary;
+
+        // Current resolution card
+        doc.rect(40, curY, 515, 68).fill(colors.cardBg);
+        doc.rect(40, curY, 515, 68).strokeColor(colors.border).lineWidth(1).stroke();
+
+        doc.fillColor(colors.textSecondary).fontSize(7.5).font("Helvetica")
+          .text("CURRENT RESOLUTION STATUS", 55, curY + 10)
+          .text("REVIEWER IDENTITY", 220, curY + 10)
+          .text("DECISION RECORDED AT", 390, curY + 10);
+
+        doc.fillColor(resColor).fontSize(11).font("Helvetica-Bold")
+          .text(resolutionState.replace(/_/g, " "), 55, curY + 22);
+
+        const reviewerEmail = data.reviewerUser?.email || "Pending Assignment";
+        doc.fillColor(colors.textPrimary).fontSize(9).font("Helvetica-Bold")
+          .text(reviewerEmail, 220, curY + 24)
+          .text(data.caseDoc.resolvedAt ? new Date(data.caseDoc.resolvedAt).toISOString().slice(0, 19).replace("T", " ") : "Awaiting Review", 390, curY + 24);
+
+        if (data.caseDoc.resolutionNote) {
+          doc.fillColor(colors.textSecondary).fontSize(7.5).font("Helvetica")
+            .text("REVIEWER NOTE:", 55, curY + 42, { continued: true });
+          doc.fillColor(colors.textPrimary).font("Helvetica-Oblique")
+            .text(` "${data.caseDoc.resolutionNote}"`);
+        } else {
+          doc.fillColor(colors.textSecondary).fontSize(7.5).font("Helvetica-Oblique")
+            .text("No reviewer notes attached to this disposition.", 55, curY + 44);
+        }
+
+        curY += 76;
+
+        // Decision history log if multiple decisions exist
+        if (data.reviewDecisionDocs && data.reviewDecisionDocs.length > 0) {
+          doc.fillColor(colors.textSecondary).fontSize(8.5).font("Helvetica-Bold")
+            .text("REVIEW DECISION HISTORY AUDIT TRAIL", 40, curY);
+          curY += 14;
+
+          data.reviewDecisionDocs.slice(0, 4).forEach((d) => {
+            const dColor =
+              d.decision === "APPROVED"
+                ? colors.emerald
+                : d.decision === "REJECTED"
+                ? "#EF4444"
+                : d.decision === "CLARIFICATION_REQUESTED"
+                ? "#EAB308"
+                : colors.textSecondary;
+
+            doc.rect(40, curY, 515, 26).fill(colors.cardBg);
+            doc.rect(40, curY, 515, 26).strokeColor(colors.border).lineWidth(0.5).stroke();
+
+            doc.fillColor(dColor).fontSize(8).font("Helvetica-Bold")
+              .text(d.decision.replace(/_/g, " "), 50, curY + 5, { continued: true });
+            doc.fillColor(colors.textSecondary).font("Helvetica")
+              .text(`  •  ${(d as any).reviewedBy?.email || "Reviewer"}  •  ${new Date(d.decidedAt).toISOString().slice(0, 16).replace("T", " ")}`);
+
+            if (d.note) {
+              doc.fillColor(colors.textPrimary).fontSize(7.5).font("Helvetica-Oblique")
+                .text(`"${d.note}"`, 50, curY + 16, { width: 490 });
+            }
+
+            curY += 30;
+          });
+        }
 
         // Apply headers & footers across all buffered pages
         const pages = doc.bufferedPageRange();

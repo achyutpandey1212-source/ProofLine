@@ -194,6 +194,16 @@ export const DocsPage: React.FC = () => {
             >
               <span><b className="text-blue-400 font-bold mr-1">GET</b>/.../proof-packet</span>
             </button>
+            <button
+              onClick={() => scrollToSection("review")}
+              className={`w-full text-left px-3 py-2 rounded-xl transition cursor-pointer flex items-center justify-between font-mono text-[11px] ${
+                activeSection === "review"
+                  ? "bg-[#FF6D29]/15 text-[#FFA776] font-medium border border-[#FF6D29]/30"
+                  : "text-[#BABABA] hover:text-white hover:bg-white/[0.04]"
+              }`}
+            >
+              <span><b className="text-emerald-400 font-bold mr-1">POST</b>/.../review</span>
+            </button>
 
             <div className="text-[11px] font-mono uppercase tracking-wider text-[#BABABA]/60 px-3 pt-6 pb-2">
               Workflow Guide
@@ -548,6 +558,50 @@ export const DocsPage: React.FC = () => {
               <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 text-xs font-mono text-[#BABABA] space-y-1">
                 <div>Content-Type: application/pdf</div>
                 <div>Content-Disposition: attachment; filename="proof-packet-PL-EW104.pdf"</div>
+              </div>
+            </section>
+
+            {/* 8b. POST /verifications/:id/review */}
+            <section id="review" className="p-6 sm:p-8 rounded-2xl bg-[#0F0D10] border border-white/10 space-y-5">
+              <div className="flex items-center justify-between pb-3 border-b border-white/5">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    POST
+                  </span>
+                  <span className="font-mono text-xs sm:text-sm text-white">/api/v1/verifications/:verificationId/review</span>
+                </div>
+                <span className="text-[11px] font-mono text-[#BABABA]">Human Resolution</span>
+              </div>
+
+              <p className="text-xs sm:text-sm text-[#BABABA] font-display">
+                Records a human review decision on a verification case. Review decisions do <strong>not</strong> mutate automated verification results, calculated risks, or physical extractions; they register conscious business disposition in an immutable audit trail.
+              </p>
+
+              <div className="space-y-2">
+                <div className="text-[11px] font-mono uppercase text-[#BABABA]">Request Payload</div>
+                <div className="rounded-xl border border-white/10 bg-[#080709] p-4 text-xs font-mono text-zinc-300 overflow-x-auto">
+                  <pre>{`{
+  "decision": "APPROVED", // "APPROVED" | "REJECTED" | "CLARIFICATION_REQUESTED"
+  "note": "Tolerance exception signed off by compliance officer."
+}`}</pre>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="text-[11px] font-mono uppercase text-[#BABABA]">Response (200 OK)</div>
+                <div className="rounded-xl border border-white/10 bg-[#080709] p-4 text-xs font-mono text-zinc-300 overflow-x-auto">
+                  <pre>{`{
+  "success": true,
+  "caseId": "PL-EW104-58F9D2",
+  "resolutionState": "APPROVED",
+  "review": {
+    "decision": "APPROVED",
+    "note": "Tolerance exception signed off by compliance officer.",
+    "decidedAt": "2026-10-04T18:30:00.000Z",
+    "previousResolution": "PENDING_REVIEW"
+  }
+}`}</pre>
+                </div>
               </div>
             </section>
 

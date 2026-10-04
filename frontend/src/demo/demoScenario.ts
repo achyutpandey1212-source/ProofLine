@@ -91,6 +91,15 @@ export const OFFICIAL_DEMO_SCENARIO: DemoScenarioDefinition = {
       expectedWeight: 177.8,
       expectedUnit: "kg",
     },
+    {
+      id: "demo-ev-cert",
+      type: "CERTIFICATE",
+      fileName: "certificate-ew104.pdf",
+      assetPath: "/demo/certificate-ew104.pdf",
+      description: "Certificate of Analysis COA-2026-EW104 certifying 560 kg PET Flakes",
+      expectedWeight: 560,
+      expectedUnit: "kg",
+    },
   ],
   expectedOutcome: {
     claimedQuantity: 560,

@@ -280,7 +280,23 @@ export const PlaygroundPage: React.FC = () => {
 
   // End-to-End "Try Demo" Flow
   const handleRunFullDemo = async () => {
-    if (!apiKey.trim()) {
+    let activeKey = apiKey.trim();
+    if (!activeKey) {
+      try {
+        const res = await fetch("/api/v1/sandbox-key");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.apiKey) {
+            activeKey = data.apiKey;
+            setApiKey(activeKey);
+          }
+        }
+      } catch {
+        // Continue
+      }
+    }
+
+    if (!activeKey) {
       setErrorMessage("Please enter or generate an API key first.");
       return;
     }
@@ -290,7 +306,7 @@ export const PlaygroundPage: React.FC = () => {
       setErrorMessage(null);
 
       // 1. Create verification
-      const createRes = await PlaygroundService.createVerification(apiKey, {
+      const createRes = await PlaygroundService.createVerification(activeKey, {
         transactionId: "EW-104",
         partnerName: "ABC Recycling Pvt Ltd",
         material: "PET Plastic Flakes",
@@ -314,13 +330,14 @@ export const PlaygroundPage: React.FC = () => {
         { path: "/demo/scale-ticket-01.jpg", name: "scale-ticket-01.jpg", type: "SCALE_IMAGE" },
         { path: "/demo/scale-ticket-02.jpg", name: "scale-ticket-02.jpg", type: "SCALE_IMAGE" },
         { path: "/demo/scale-ticket-03.jpg", name: "scale-ticket-03.jpg", type: "SCALE_IMAGE" },
+        { path: "/demo/certificate-ew104.pdf", name: "certificate-ew104.pdf", type: "CERTIFICATE" },
       ];
 
       const uploaded: any[] = [];
       for (const item of demoFiles) {
         const fileRes = await fetch(item.path);
         const blob = await fileRes.blob();
-        const upRes = await PlaygroundService.uploadEvidence(apiKey, verId, blob, item.name, item.type);
+        const upRes = await PlaygroundService.uploadEvidence(activeKey, verId, blob, item.name, item.type);
         if (upRes.status === 201) {
           uploaded.push({ id: (upRes.data as any).id, type: item.type, filename: item.name });
         }
@@ -330,7 +347,7 @@ export const PlaygroundPage: React.FC = () => {
       // 3. Run verification
       setRunning(true);
       setRunStatus("Executing verification pipeline on demo evidence...");
-      await PlaygroundService.runVerification(apiKey, verId);
+      await PlaygroundService.runVerification(activeKey, verId);
 
       // 4. Poll until completed
       let finished = false;
@@ -338,7 +355,7 @@ export const PlaygroundPage: React.FC = () => {
       while (!finished && counter < 15) {
         await new Promise((r) => setTimeout(r, 2000));
         counter++;
-        const poll = await PlaygroundService.getVerificationStatus(apiKey, verId);
+        const poll = await PlaygroundService.getVerificationStatus(activeKey, verId);
         const data = poll.data as any;
         if (data?.status === "COMPLETED") {
           finished = true;
@@ -424,7 +441,7 @@ export const PlaygroundPage: React.FC = () => {
             <button
               type="button"
               onClick={handleRunFullDemo}
-              disabled={isDemoRunning || !apiKey.trim()}
+              disabled={isDemoRunning}
               className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium shadow-[0_2px_14px_rgba(255,109,41,0.3)] hover:shadow-[0_2px_20px_rgba(255,109,41,0.45)] transition cursor-pointer disabled:opacity-40"
               title="Runs EW-104 verification with real demo images and polls the result"
             >
@@ -498,13 +515,24 @@ export const PlaygroundPage: React.FC = () => {
               {!apiKey && (
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
+                    try {
+                      const res = await fetch("/api/v1/sandbox-key");
+                      if (res.ok) {
+                        const data = await res.json();
+                        if (data.apiKey) {
+                          setApiKey(data.apiKey);
+                          return;
+                        }
+                      }
+                    } catch {
+                      // Fallback handled below
+                    }
                     const randHex = Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
-                    const instantKey = `pl_live_${randHex}`;
-                    setApiKey(instantKey);
+                    setApiKey(`pl_live_${randHex}`);
                   }}
                   className="px-3 py-2 rounded-xl bg-[#FF6D29]/15 hover:bg-[#FF6D29]/25 border border-[#FF6D29]/30 text-xs font-display text-[#FFA776] transition cursor-pointer whitespace-nowrap"
-                  title="Generate an instant test key directly into the input"
+                  title="Generate a registered sandbox key directly into the input"
                 >
                   Quick Key
                 </button>

@@ -8,7 +8,8 @@ import { VerificationModel } from "../models/verification.model";
 import { EvidenceModel, EvidenceType } from "../models/evidence.model";
 import { FindingModel } from "../models/finding.model";
 import { WorkflowRunModel } from "../models/workflowRun.model";
-import { CreateVerificationDto } from "../validators/apiV1.validator";
+import { CreateVerificationDto, ReviewVerificationDto } from "../validators/apiV1.validator";
+import { ReviewService } from "../services/review.service";
 
 export class ApiV1Controller {
   /**
@@ -283,6 +284,11 @@ export class ApiV1Controller {
           difference: Math.abs(difference),
           variancePercent: Math.abs(variancePercent),
         },
+        resolution: {
+          state: caseDoc.resolutionState || "PENDING_REVIEW",
+          note: caseDoc.resolutionNote || null,
+          resolvedAt: caseDoc.resolvedAt ? new Date(caseDoc.resolvedAt).toISOString() : null,
+        },
         findings: findingDocs.map((f) => ({
           code: f.ruleId || f.type,
           severity: f.severity,
@@ -348,6 +354,54 @@ export class ApiV1Controller {
         });
         return;
       }
+      next(err);
+    }
+  }
+
+  /**
+   * POST /api/v1/verifications/:verificationId/review
+   * Records a human review decision (APPROVED, REJECTED, CLARIFICATION_REQUESTED)
+   * via external API.
+   */
+  public static async reviewVerification(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const client = req.externalClient!;
+      const verificationId = req.params["verificationId"]!;
+      const body = req.body as ReviewVerificationDto;
+
+      const caseDoc = await ApiV1Controller.resolveOwnedCase(req, verificationId);
+      if (!caseDoc) {
+        res.status(404).json({
+          error: {
+            code: "NOT_FOUND",
+            message: `Verification resource '${verificationId}' not found.`,
+            requestId: req.requestId,
+          },
+        });
+        return;
+      }
+
+      const summary = await ReviewService.recordDecision({
+        userId: client.userDoc._id,
+        caseIdOrMongoId: String(caseDoc._id),
+        decision: body.decision,
+        note: body.note,
+      });
+
+      res.status(200).json({
+        verificationId: summary.caseId,
+        resolution: {
+          state: summary.currentResolution,
+          note: summary.resolutionNote || null,
+          resolvedAt: summary.resolvedAt || null,
+        },
+        message: `Verification status updated to ${summary.currentResolution}.`,
+      });
+    } catch (err) {
       next(err);
     }
   }

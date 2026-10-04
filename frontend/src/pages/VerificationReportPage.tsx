@@ -22,6 +22,8 @@ import { SimulationBanner } from "../components/SimulationBanner";
 import { SimulationModal } from "../components/simulation/SimulationModal";
 import { ProofPacketModal } from "../components/proofPacket/ProofPacketModal";
 import { useSimulation } from "../context/SimulationContext";
+import { HumanReviewSection } from "../components/review/HumanReviewSection";
+import { CaseReviewSummary } from "../types";
 import { FlaskConical, FileCheck } from "lucide-react";
 
 export const VerificationReportPage: React.FC = () => {
@@ -34,6 +36,7 @@ export const VerificationReportPage: React.FC = () => {
   const [caseItem, setCaseItem] = useState<CaseItem | null>(null);
   const [evidenceList, setEvidenceList] = useState<EvidenceItem[]>([]);
   const [report, setReport] = useState<VerificationReport | null>(null);
+  const [reviewSummary, setReviewSummary] = useState<CaseReviewSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showGraphModal, setShowGraphModal] = useState(false);
@@ -42,31 +45,33 @@ export const VerificationReportPage: React.FC = () => {
   const reconciliationRef = useRef<HTMLDivElement>(null);
   const findingsRef = useRef<HTMLDivElement>(null);
   const evidenceRef = useRef<HTMLDivElement>(null);
+  const reviewRef = useRef<HTMLDivElement>(null);
+
+  const loadData = async () => {
+    if (!caseId) return;
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [c, e, r, rev] = await Promise.all([
+        CaseService.getCase(caseId),
+        EvidenceService.listEvidence(caseId),
+        VerificationClientService.getReport(caseId),
+        CaseService.getReviewSummary(caseId).catch(() => null),
+      ]);
+
+      setCaseItem(c);
+      setEvidenceList(e);
+      setReport(r);
+      setReviewSummary(rev);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load verification report.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (!caseId) return;
-
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const [c, e, r] = await Promise.all([
-          CaseService.getCase(caseId),
-          EvidenceService.listEvidence(caseId),
-          VerificationClientService.getReport(caseId),
-        ]);
-
-        setCaseItem(c);
-        setEvidenceList(e);
-        setReport(r);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load verification report.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadData();
   }, [caseId]);
 
@@ -81,6 +86,7 @@ export const VerificationReportPage: React.FC = () => {
           reconciliationRef.current,
           findingsRef.current,
           evidenceRef.current,
+          reviewRef.current,
         ],
         { opacity: 0, y: 16 },
         {
@@ -384,10 +390,12 @@ export const VerificationReportPage: React.FC = () => {
               <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
                 <div>
                   <div className="text-xs font-medium text-white">Commercial Invoice</div>
-                  <div className="text-[11px] text-[#BABABA]">{invoiceEvidence?.file.name || "invoice-ew104.jpg"}</div>
+                  <div className="text-[11px] text-[#BABABA]">{invoiceEvidence?.file.name || "Declared Manifest"}</div>
                 </div>
                 <div className="text-sm font-mono font-medium text-white">
-                  {report.calculatedValues.claimedWeight ?? 560} kg
+                  {report.calculatedValues.claimedWeight !== undefined
+                    ? `${report.calculatedValues.claimedWeight} kg`
+                    : `${caseItem.claimedQuantity} ${caseItem.unit}`}
                 </div>
               </div>
               <div className="text-xs text-[#BABABA] leading-relaxed">
@@ -401,17 +409,25 @@ export const VerificationReportPage: React.FC = () => {
                 Physical Scale Measurements
               </div>
               <div className="space-y-2">
-                {scaleEvidence.map((s, idx) => {
-                  const weightVal = (s.extraction?.data?.["weight"] as number) ?? [184.6, 193.2, 177.8][idx];
-                  return (
-                    <div key={s._id || idx} className="flex items-center justify-between text-xs">
-                      <span className="text-[#BABABA]">
-                        Scale Ticket 0{idx + 1} ({s.file.name})
-                      </span>
-                      <span className="font-mono text-white font-medium">{weightVal} kg</span>
-                    </div>
-                  );
-                })}
+                {scaleEvidence.length === 0 ? (
+                  <div className="text-xs text-[#BABABA]/60 italic py-1">
+                    No physical scale tickets submitted for this case.
+                  </div>
+                ) : (
+                  scaleEvidence.map((s, idx) => {
+                    const weightVal = (s.extraction?.data?.["weight"] as number | undefined);
+                    return (
+                      <div key={s._id || idx} className="flex items-center justify-between text-xs">
+                        <span className="text-[#BABABA]">
+                          Scale Ticket 0{idx + 1} ({s.file.name})
+                        </span>
+                        <span className="font-mono text-white font-medium">
+                          {weightVal !== undefined ? `${weightVal} kg` : "Measurement unavailable"}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
               </div>
 
               {/* Total Row */}
@@ -519,12 +535,9 @@ export const VerificationReportPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-white/[0.06]">
                 {evidenceList.map((ev, i) => {
-                  // Fallback to demo values if extraction data array hasn't updated yet
-                  const fallbackWeights = [560, 184.6, 193.2, 177.8];
                   const extractedWeight =
                     (ev.extraction?.data?.["weight"] as number | undefined) ??
-                    (ev.extraction?.data?.["quantity"] as number | undefined) ??
-                    fallbackWeights[i];
+                    (ev.extraction?.data?.["quantity"] as number | undefined);
 
                   return (
                     <tr key={ev._id || i} className="hover:bg-white/[0.02] transition-colors">
@@ -548,7 +561,13 @@ export const VerificationReportPage: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-5 py-3.5 text-right font-mono font-medium text-white">
-                        {extractedWeight !== undefined ? `${extractedWeight} kg` : "—"}
+                        {extractedWeight !== undefined ? (
+                          `${extractedWeight} kg`
+                        ) : (
+                          <span className="text-[#BABABA]/50 italic text-[11px] font-sans">
+                            Measurement unavailable
+                          </span>
+                        )}
                       </td>
                       <td className="px-5 py-3.5 text-right">
                         <a
@@ -568,6 +587,21 @@ export const VerificationReportPage: React.FC = () => {
             </table>
           </div>
         </section>
+
+        {/* 5. HUMAN REVIEW & RESOLUTION WORKFLOW */}
+        {caseId && (
+          <section ref={reviewRef}>
+            <HumanReviewSection
+              caseId={caseId}
+              initialSummary={reviewSummary}
+              isSimulated={isSimulating}
+              onDecisionUpdated={(updatedSummary) => {
+                setReviewSummary(updatedSummary);
+                loadData();
+              }}
+            />
+          </section>
+        )}
       </main>
 
       {/* Interactive Proof Graph Modal */}

@@ -21,6 +21,41 @@ export type CaseStatus =
 
 export type RiskLevel = "LOW" | "REVIEW_REQUIRED" | "HIGH";
 
+export type HumanResolutionState =
+  | "PENDING_REVIEW"
+  | "APPROVED"
+  | "REJECTED"
+  | "CLARIFICATION_REQUESTED";
+
+export interface ReviewHistoryItem {
+  id: string;
+  decision: HumanResolutionState;
+  note?: string;
+  previousResolution?: HumanResolutionState;
+  decidedAt: string;
+  reviewer: {
+    id: string;
+    email: string;
+    name?: string;
+    role: string;
+  };
+}
+
+export interface CaseReviewSummary {
+  caseId: string;
+  transactionId: string;
+  currentResolution: HumanResolutionState;
+  resolutionNote?: string;
+  resolvedAt?: string;
+  reviewer?: {
+    id: string;
+    email: string;
+    name?: string;
+    role: string;
+  };
+  history: ReviewHistoryItem[];
+}
+
 export interface CaseItem {
   _id: string;
   caseId: string;
@@ -31,6 +66,9 @@ export interface CaseItem {
   unit: string;
   status: CaseStatus;
   riskLevel?: RiskLevel;
+  resolutionState?: HumanResolutionState;
+  resolutionNote?: string;
+  resolvedAt?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;

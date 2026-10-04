@@ -69,4 +69,12 @@ export const uploadApiEvidenceBodySchema = z.object({
     }),
 });
 
+export const reviewVerificationBodySchema = z.object({
+  decision: z.enum(["APPROVED", "REJECTED", "CLARIFICATION_REQUESTED"], {
+    required_error: "decision is required and must be APPROVED, REJECTED, or CLARIFICATION_REQUESTED",
+  }),
+  note: z.string().trim().max(2000).optional(),
+});
+
 export type CreateVerificationDto = z.infer<typeof createVerificationSchema>;
+export type ReviewVerificationDto = z.infer<typeof reviewVerificationBodySchema>;

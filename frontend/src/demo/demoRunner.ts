@@ -24,7 +24,8 @@ export class DemoManager {
       throw new Error(`Failed to load synthetic evidence file ${item.fileName} (${res.status})`);
     }
     const blob = await res.blob();
-    return new File([blob], item.fileName, { type: "image/jpeg" });
+    const mimeType = item.fileName.endsWith(".pdf") ? "application/pdf" : "image/jpeg";
+    return new File([blob], item.fileName, { type: mimeType });
   }
 
   /**

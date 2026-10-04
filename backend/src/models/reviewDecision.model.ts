@@ -1,17 +1,17 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
 
-export type ReviewDecisionType =
-  | "ACCEPTED"
-  | "REQUEST_CLARIFICATION"
+export type ReviewResolutionState =
+  | "PENDING_REVIEW"
+  | "APPROVED"
   | "REJECTED"
-  | "FURTHER_INVESTIGATION";
+  | "CLARIFICATION_REQUESTED";
 
 export interface IReviewDecision extends Document {
   caseId: Types.ObjectId; // References CaseModel._id
   reviewedBy: Types.ObjectId; // References UserModel._id
-  decision: ReviewDecisionType;
-  comment?: string;
-  clarificationRequestText?: string;
+  decision: ReviewResolutionState;
+  note?: string;
+  previousResolution?: ReviewResolutionState;
   decidedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -33,17 +33,18 @@ const ReviewDecisionSchema = new Schema<IReviewDecision>(
     },
     decision: {
       type: String,
-      enum: ["ACCEPTED", "REQUEST_CLARIFICATION", "REJECTED", "FURTHER_INVESTIGATION"],
+      enum: ["PENDING_REVIEW", "APPROVED", "REJECTED", "CLARIFICATION_REQUESTED", "ACCEPTED"],
       required: true,
       index: true,
     },
-    comment: {
+    note: {
       type: String,
       trim: true,
+      maxlength: 2000,
     },
-    clarificationRequestText: {
+    previousResolution: {
       type: String,
-      trim: true,
+      enum: ["PENDING_REVIEW", "APPROVED", "REJECTED", "CLARIFICATION_REQUESTED"],
     },
     decidedAt: {
       type: Date,
@@ -55,6 +56,9 @@ const ReviewDecisionSchema = new Schema<IReviewDecision>(
     timestamps: true,
   }
 );
+
+// Compound index to query decision audit trail efficiently
+ReviewDecisionSchema.index({ caseId: 1, decidedAt: -1 });
 
 export const ReviewDecisionModel = mongoose.model<IReviewDecision>(
   "ReviewDecision",
