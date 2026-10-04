@@ -16,6 +16,12 @@ router.post(
 );
 
 router.get(
+  "/cases/:caseId/verification/status",
+  validateRequest({ params: verifyCaseParamSchema }),
+  VerificationController.getStatus
+);
+
+router.get(
   "/cases/:caseId/verification",
   validateRequest({ params: verifyCaseParamSchema }),
   VerificationController.getVerification

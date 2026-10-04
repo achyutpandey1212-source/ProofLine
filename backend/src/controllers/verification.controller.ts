@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from "express";
+import { VerificationWorkflowService } from "../services/workflow.service";
 import { VerificationService } from "../services/verification.service";
 import { AppError } from "../middleware/error.middleware";
 
 export class VerificationController {
   /**
    * POST /cases/:caseId/verify
-   * Runs deterministic verification on an owned case with extracted evidence.
+   * Triggers or resumes the complete LangGraph verification workflow for an owned case.
    */
   public static async verify(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -18,7 +19,40 @@ export class VerificationController {
         throw new AppError("Case identifier is required.", 400, "BAD_REQUEST");
       }
 
-      const result = await VerificationService.verifyCase({
+      const isDirect = req.query["mode"] === "direct";
+
+      if (isDirect) {
+        const directResult = await VerificationService.verifyCase({
+          userId: req.user.userDoc._id,
+          caseIdOrMongoId,
+        });
+
+        res.status(200).json({
+          success: true,
+          data: {
+            caseId: directResult.caseDoc.caseId,
+            status: directResult.caseDoc.status,
+            overallRisk: directResult.verification.overallRisk,
+            summary: directResult.verification.summary,
+            calculatedValues: directResult.verification.calculatedValues,
+            ruleResults: directResult.verification.ruleResults,
+            findings: directResult.findings.map((f) => ({
+              findingId: f.findingId,
+              ruleId: f.ruleId,
+              type: f.type,
+              severity: f.severity,
+              title: f.title,
+              description: f.description,
+              evidenceIds: f.evidenceIds,
+              recommendedAction: f.recommendedAction,
+            })),
+            verifiedAt: directResult.verification.verifiedAt,
+          },
+        });
+        return;
+      }
+
+      const result = await VerificationWorkflowService.executeCaseWorkflow({
         userId: req.user.userDoc._id,
         caseIdOrMongoId,
       });
@@ -26,12 +60,14 @@ export class VerificationController {
       res.status(200).json({
         success: true,
         data: {
+          workflowId: result.workflowId,
+          workflowStatus: result.workflowStatus,
           caseId: result.caseDoc.caseId,
           status: result.caseDoc.status,
-          overallRisk: result.verification.overallRisk,
-          summary: result.verification.summary,
-          calculatedValues: result.verification.calculatedValues,
-          ruleResults: result.verification.ruleResults,
+          overallRisk: result.verification?.overallRisk,
+          summary: result.verification?.summary,
+          calculatedValues: result.verification?.calculatedValues,
+          ruleResults: result.verification?.ruleResults ?? [],
           findings: result.findings.map((f) => ({
             findingId: f.findingId,
             ruleId: f.ruleId,
@@ -42,7 +78,50 @@ export class VerificationController {
             evidenceIds: f.evidenceIds,
             recommendedAction: f.recommendedAction,
           })),
-          verifiedAt: result.verification.verifiedAt,
+          verifiedAt: result.verification?.verifiedAt,
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * GET /cases/:caseId/verification/status
+   * Retrieves the current workflow execution progress / status for an owned case.
+   */
+  public static async getStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new AppError("Authentication required.", 401, "UNAUTHORIZED");
+      }
+
+      const caseIdOrMongoId = req.params["caseId"];
+      if (!caseIdOrMongoId) {
+        throw new AppError("Case identifier is required.", 400, "BAD_REQUEST");
+      }
+
+      const run = await VerificationWorkflowService.getWorkflowStatus({
+        userId: req.user.userDoc._id,
+        caseIdOrMongoId,
+      });
+
+      if (!run) {
+        throw new AppError("No verification workflow has been started for this case.", 404, "NOT_FOUND");
+      }
+
+      res.status(200).json({
+        success: true,
+        data: {
+          workflowId: run.workflowId,
+          status: run.status,
+          step: run.currentStep,
+          processedEvidence: run.processedEvidenceCount,
+          totalEvidence: run.totalEvidenceCount,
+          retryCount: run.retryCount,
+          errorMessage: run.errorMessage,
+          startedAt: run.startedAt,
+          completedAt: run.completedAt,
         },
       });
     } catch (err) {

@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@google/genai": "^2.27.0",
+    "@langchain/core": "^1.2.14",
+    "@langchain/langgraph": "^1.4.19",
     "@types/multer": "^2.3.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",

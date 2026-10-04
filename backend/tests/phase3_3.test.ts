@@ -65,8 +65,8 @@ const runSuite = async () => {
   try {
     // 0. Clean test data
     await UserModel.deleteMany({ email: /@proofline\.test$/ });
-    await CaseModel.deleteMany({ transactionId: /^DEMO-TX-/ });
-    await EvidenceModel.deleteMany({ evidenceId: /^EVD-DEMO-/ });
+    await CaseModel.deleteMany({ $or: [{ transactionId: /^DEMO-TX-/ }, { caseId: /^PL-EW-/ }] });
+    await EvidenceModel.deleteMany({ evidenceId: /^EVD-DEMO/ });
     await VerificationModel.deleteMany({});
     await FindingModel.deleteMany({});
 
@@ -345,7 +345,7 @@ const runSuite = async () => {
       extraction: { status: "PENDING" },
     });
 
-    const unextractedVerifyRes = await fetch(`${baseUrl}/cases/${demoCase3.caseId}/verify`, {
+    const unextractedVerifyRes = await fetch(`${baseUrl}/cases/${demoCase3.caseId}/verify?mode=direct`, {
       method: "POST",
       headers: { Authorization: "Bearer token-user-a" },
     });
