@@ -58,25 +58,31 @@ export const HeroContent: React.FC<HeroContentProps> = ({
           Proofline turns real-world evidence into a clear, traceable verification decision.
         </p>
 
-        {/* CTAs: Understated dark/off-white with subtle border and tiny hover translation */}
+        {/* CTAs: Refined rounded geometry system */}
         <div
           ref={ctaGroupRef}
           className="pt-2 sm:pt-4 flex flex-wrap items-center gap-4 sm:gap-6 font-display"
         >
+          {/* Primary CTA: 10px-12px radius, dark charcoal surface, subtle border, animated arrow */}
           <Link
             to="/cases"
-            className="group inline-flex items-center gap-2.5 px-6 sm:px-7 py-3 sm:py-3.5 text-xs sm:text-sm font-medium tracking-wide text-proof-offwhite bg-proof-charcoal/90 border border-proof-offwhite/25 hover:border-proof-offwhite/50 hover:bg-proof-charcoal transition-all duration-200"
+            className="group inline-flex items-center gap-2.5 px-6 sm:px-7 py-3 sm:py-3.5 text-xs sm:text-sm font-medium tracking-wide text-proof-offwhite bg-proof-charcoal border border-proof-offwhite/25 hover:border-proof-offwhite/50 hover:bg-[#1a1a1a] rounded-[11px] transition-all duration-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-proof-vermillion"
           >
             <span>Start a verification</span>
-            <span className="inline-block transition-transform duration-200 ease-out group-hover:translate-x-1 text-proof-vermillion">
+            <span className="inline-block transition-transform duration-300 ease-out group-hover:translate-x-1 text-proof-vermillion text-sm">
               →
             </span>
           </Link>
+
+          {/* Secondary CTA: text-based with subtle animated arrow */}
           <a
             href="#how-it-works"
-            className="inline-flex items-center text-xs sm:text-sm font-normal tracking-wide text-proof-gray hover:text-proof-offwhite transition-colors duration-200"
+            className="group inline-flex items-center gap-1.5 text-xs sm:text-sm font-normal tracking-wide text-proof-gray hover:text-proof-offwhite transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-proof-vermillion rounded-[6px] px-1 py-0.5"
           >
-            See how it works
+            <span>See how it works</span>
+            <span className="inline-block transition-transform duration-300 ease-out group-hover:translate-x-1 text-proof-offwhite/60 group-hover:text-proof-offwhite text-sm">
+              →
+            </span>
           </a>
         </div>
       </div>
