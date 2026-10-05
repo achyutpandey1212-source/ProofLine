@@ -12,7 +12,6 @@ import {
   Network,
   RotateCcw,
 } from "lucide-react";
-import gsap from "gsap";
 
 interface ProofGraphModalProps {
   caseId: string;
@@ -142,31 +141,9 @@ export const ProofGraphModal: React.FC<ProofGraphModalProps> = ({
     return { highlightedNodeIds: nIds, highlightedEdgeIds: eIds };
   }, [selectedNode, data]);
 
-  // Subtle GSAP sequential entrance animation
-  useEffect(() => {
-    if (!isOpen || loading || !layout) return;
-
-    const ctx = gsap.context(() => {
-      // Column by column staggered reveal
-      const nodeElements = viewportRef.current?.querySelectorAll(".proof-graph-node");
-      if (nodeElements && nodeElements.length > 0) {
-        gsap.fromTo(
-          nodeElements,
-          { opacity: 0, scale: 0.92, y: 12 },
-          {
-            opacity: 1,
-            scale: 1,
-            y: 0,
-            duration: 0.45,
-            stagger: 0.04,
-            ease: "power2.out",
-          }
-        );
-      }
-    }, viewportRef);
-
-    return () => ctx.revert();
-  }, [isOpen, loading, layout]);
+  // GSAP animation on .proof-graph-node removed because gsap.fromTo({ y: 12 }, { y: 0 })
+  // was overwriting element style.transform = translate(node.x, node.y) with matrix/translateY(0),
+  // causing all 28 nodes in each column to collapse onto y = 0!
 
   // Pan / Drag handlers with window-level tracking
   const handleMouseDown = (e: React.MouseEvent) => {

@@ -178,24 +178,15 @@ export class ProofGraphService {
       const extractionData = ev.extraction.data;
 
       // Key fields that matter for provenance verification
+      // Curate primary verification facts (avoiding clutter like raw timestamps and scale serials)
       const ALLOWED_FACT_KEYS = new Set([
         "weight",
         "quantity",
         "netWeight",
-        "grossWeight",
-        "tareWeight",
         "transactionId",
         "invoiceNumber",
-        "ticketNumber",
-        "scaleIdentifier",
-        "deviceIdentifier",
         "sellerName",
-        "buyerName",
         "issuerName",
-        "vendorName",
-        "date",
-        "time",
-        "timestamp",
         "materialDescription",
         "material",
       ]);
@@ -289,74 +280,58 @@ export class ProofGraphService {
         },
       });
 
-      // Connect relevant FACTS (or EVIDENCE if no specific fact) -> RULE
+      // Connect rules cleanly according to their domain
       const relevantEvidenceIds = ruleRes.evidenceIds || [];
-      let connectedAnyFact = false;
 
-      for (const evId of relevantEvidenceIds) {
-        const factKeys = evidenceFactKeyMap.get(evId);
-
-        // Map rule types to their relevant extracted facts
-        let targetedFactIds: string[] = [];
-
-        if (ruleRes.ruleId === "WEIGHT_RECONCILIATION") {
-          const weightFact = factKeys?.get("weight") || factKeys?.get("quantity");
-          if (weightFact) targetedFactIds.push(weightFact);
-        } else if (ruleRes.ruleId === "ENTITY_CONSISTENCY") {
-          const entityFact = factKeys?.get("sellerName") || factKeys?.get("issuerName");
-          if (entityFact) targetedFactIds.push(entityFact);
-        } else if (ruleRes.ruleId === "TRANSACTION_ID_CONSISTENCY") {
-          const txFact = factKeys?.get("transactionId") || factKeys?.get("invoiceNumber");
-          if (txFact) targetedFactIds.push(txFact);
-        } else if (ruleRes.ruleId === "DOCUMENT_QUANTITY_CONSISTENCY") {
-          const qtyFact = factKeys?.get("quantity") || factKeys?.get("weight");
-          if (qtyFact) targetedFactIds.push(qtyFact);
-        } else if (ruleRes.ruleId === "MATERIAL_CONSISTENCY") {
-          const matFact = factKeys?.get("materialDescription") || factKeys?.get("material");
-          if (matFact) targetedFactIds.push(matFact);
-        }
-
-        // If specific facts targeted, connect them
-        if (targetedFactIds.length > 0) {
-          for (const fid of targetedFactIds) {
-            edges.push({
-              id: `edge-${fid}-${ruleNodeId}`,
-              source: fid,
-              target: ruleNodeId,
-              label: "USED BY",
-              relationship: "USED_BY",
-            });
-            connectedAnyFact = true;
-          }
-        } else {
-          // Fallback: connect all facts of this evidence or the evidence node itself
-          const allFacts = evidenceToFactNodes.get(evId) || [];
-          if (allFacts.length > 0) {
-            for (const fid of allFacts) {
-              edges.push({
-                id: `edge-${fid}-${ruleNodeId}`,
-                source: fid,
-                target: ruleNodeId,
-                label: "USED BY",
-                relationship: "USED_BY",
-              });
-              connectedAnyFact = true;
-            }
-          }
-        }
-      }
-
-      // If rule had no specific facts to connect, connect directly from evidence nodes
-      if (!connectedAnyFact) {
+      // Global document-level rules connect cleanly to EVIDENCE nodes
+      if (ruleRes.ruleId === "EVIDENCE_COMPLETENESS" || ruleRes.ruleId === "EXTRACTION_CONFIDENCE") {
         for (const evId of relevantEvidenceIds) {
           const evNodeId = `evidence-${evId}`;
           edges.push({
             id: `edge-${evNodeId}-${ruleNodeId}`,
             source: evNodeId,
             target: ruleNodeId,
-            label: "USED BY",
+            label: "EVALUATES",
             relationship: "USED_BY",
           });
+        }
+      } else {
+        // Specific consistency & reconciliation rules connect strictly to targeted facts
+        for (const evId of relevantEvidenceIds) {
+          const factKeys = evidenceFactKeyMap.get(evId);
+          let targetedFactId: string | undefined;
+
+          if (ruleRes.ruleId === "WEIGHT_RECONCILIATION") {
+            targetedFactId = factKeys?.get("weight") || factKeys?.get("netWeight");
+          } else if (ruleRes.ruleId === "ENTITY_CONSISTENCY") {
+            targetedFactId = factKeys?.get("sellerName") || factKeys?.get("issuerName");
+          } else if (ruleRes.ruleId === "TRANSACTION_ID_CONSISTENCY") {
+            targetedFactId = factKeys?.get("transactionId") || factKeys?.get("invoiceNumber");
+          } else if (ruleRes.ruleId === "DOCUMENT_QUANTITY_CONSISTENCY") {
+            targetedFactId = factKeys?.get("quantity") || factKeys?.get("weight");
+          } else if (ruleRes.ruleId === "MATERIAL_CONSISTENCY") {
+            targetedFactId = factKeys?.get("materialDescription") || factKeys?.get("material");
+          }
+
+          if (targetedFactId) {
+            edges.push({
+              id: `edge-${targetedFactId}-${ruleNodeId}`,
+              source: targetedFactId,
+              target: ruleNodeId,
+              label: "USED BY",
+              relationship: "USED_BY",
+            });
+          } else {
+            // Only connect evidence if no targeted fact exists
+            const evNodeId = `evidence-${evId}`;
+            edges.push({
+              id: `edge-${evNodeId}-${ruleNodeId}`,
+              source: evNodeId,
+              target: ruleNodeId,
+              label: "USED BY",
+              relationship: "USED_BY",
+            });
+          }
         }
       }
     }

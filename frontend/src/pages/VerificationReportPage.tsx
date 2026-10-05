@@ -25,6 +25,7 @@ import { useSimulation } from "../context/SimulationContext";
 import { HumanReviewSection } from "../components/review/HumanReviewSection";
 import { CaseReviewSummary } from "../types";
 import { FlaskConical, FileCheck } from "lucide-react";
+import { CaseLifecycleBadge } from "../components/ui/CaseLifecycleBadge";
 
 export const VerificationReportPage: React.FC = () => {
   const { caseId } = useParams<{ caseId: string }>();
@@ -158,7 +159,6 @@ export const VerificationReportPage: React.FC = () => {
     ? simulationResult.verification.overallRisk
     : caseItem.riskLevel || "LOW";
 
-  const isLowRisk = effectiveRisk === "LOW";
   const variance = effectiveReport.calculatedValues.variancePercentage ?? 0;
   const tolerancePassed = Math.abs(variance) <= 2.0;
 
@@ -273,34 +273,11 @@ export const VerificationReportPage: React.FC = () => {
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5">
-              <span
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-medium ${
-                  isLowRisk
-                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                    : "border-[#FF6D29]/40 bg-[#FF6D29]/20 text-[#FFA776]"
-                }`}
-              >
-                {isLowRisk ? (
-                  <>
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Verified</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertTriangle className="w-3.5 h-3.5 text-[#FF6D29]" />
-                    <span>Review Required</span>
-                  </>
-                )}
-              </span>
-              <span
-                className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-xs font-mono font-medium ${
-                  isLowRisk
-                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                    : "border-red-500/40 bg-red-500/15 text-red-300"
-                }`}
-              >
-                <span>Risk: {effectiveRisk}</span>
-              </span>
+              <CaseLifecycleBadge
+                status={effectiveReport.status}
+                riskLevel={effectiveRisk}
+                resolutionState={reviewSummary?.currentResolution || caseItem.resolutionState || "PENDING_REVIEW"}
+              />
 
               {/* Export Proof Packet Action Button */}
               <button
@@ -632,7 +609,7 @@ export const VerificationReportPage: React.FC = () => {
 
         {/* 5. HUMAN REVIEW & RESOLUTION WORKFLOW */}
         {caseId && (
-          <section ref={reviewRef}>
+          <section ref={reviewRef} className="space-y-6">
             <HumanReviewSection
               caseId={caseId}
               initialSummary={reviewSummary}
@@ -642,6 +619,38 @@ export const VerificationReportPage: React.FC = () => {
                 loadData();
               }}
             />
+
+            {/* Post-Resolution Operator Loop Card */}
+            {reviewSummary && reviewSummary.currentResolution !== "PENDING_REVIEW" && (
+              <div className="rounded-2xl bg-gradient-to-r from-white/[0.04] to-white/[0.02] border border-white/10 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 backdrop-blur-xl">
+                <div>
+                  <div className="flex items-center gap-2 text-white font-medium text-sm">
+                    <span className="w-2 h-2 rounded-full bg-[#FF6D29] animate-pulse" />
+                    <span>Resolution Confirmed: Case is finalized</span>
+                  </div>
+                  <p className="text-xs text-[#BABABA] mt-1 max-w-xl">
+                    Institutional decision is permanently sealed into the audit log. You can export the updated Certified Proof Packet or return to the active case queue.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 w-full sm:w-auto shrink-0">
+                  <button
+                    onClick={() => setShowPacketModal(true)}
+                    className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs font-display text-white transition cursor-pointer"
+                  >
+                    <FileCheck className="w-3.5 h-3.5 text-[#FF6D29]" />
+                    <span>Download Packet</span>
+                  </button>
+                  <Link
+                    to="/cases"
+                    className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium shadow-[0_0_20px_rgba(255,109,41,0.35)] hover:shadow-[0_0_28px_rgba(255,109,41,0.55)] transition-all"
+                  >
+                    <span>Return to Cases Queue</span>
+                    <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
+                  </Link>
+                </div>
+              </div>
+            )}
           </section>
         )}
       </main>

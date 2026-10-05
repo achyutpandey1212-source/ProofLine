@@ -77,29 +77,19 @@ export function computeGraphLayout(
     return a.label.localeCompare(b.label);
   });
 
-  // Calculate the natural height of the largest dense column (usually Facts or Rules)
-  const maxDenseCount = Math.max(
-    columns[1]!.length,
-    columns[2]!.length,
-    columns[3]!.length,
-    1
-  );
-  const anchorCenterY = startY + (maxDenseCount * (nodeHeight + verticalGap)) / 2;
-
-  // Position nodes in each column
+  // Position nodes in each column with natural top alignment and balanced centering
   for (let c = 0; c < columns.length; c++) {
     const colNodes = columns[c]!;
     if (colNodes.length === 0) continue;
 
-    const colHeight = colNodes.length * (nodeHeight + verticalGap) - verticalGap;
-
-    // Center single/few item columns (like Case or Result) around anchorCenterY,
-    // but ensure they never start higher than startY
+    // Center single/two-item columns mildly relative to the first 4-5 items (startY to ~startY + 240)
+    // rather than dragging them down 1500px to the bottom of 22 facts!
     let colStartY = startY;
-    if (colNodes.length <= 2) {
-      colStartY = Math.max(startY, anchorCenterY - colHeight / 2);
+    if (colNodes.length === 1) {
+      colStartY = startY + 60;
+    } else if (colNodes.length === 2) {
+      colStartY = startY + 20;
     } else {
-      // Distribute evenly or start at startY
       colStartY = startY;
     }
 
