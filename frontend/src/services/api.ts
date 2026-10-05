@@ -47,7 +47,10 @@ export class ApiClient {
       return "A service error occurred. Please try again shortly.";
     }
     if (data?.error) {
-      return data.error;
+      if (typeof data.error === "object" && data.error !== null) {
+        return (data.error as any).message || (data.error as any).code || fallback;
+      }
+      return String(data.error);
     }
     return fallback;
   }

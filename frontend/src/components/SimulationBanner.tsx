@@ -8,6 +8,8 @@ export const SimulationBanner: React.FC = () => {
   if (!isSimulating) return null;
 
   const scenarioLabels: Record<string, string> = {
+    EVIDENCE_REUSE: "Cross-Case Evidence Reuse (SHA-256 Collision)",
+    CHRONOLOGY_ANOMALY: "Chronological Impossibility (Timeline Anomaly)",
     WEIGHT_MISMATCH: "Weight Mismatch (Scale Divergence)",
     INVOICE_MISMATCH: "Invoice Quantity Mismatch (Declared Claim vs Scale)",
     TRANSACTION_MISMATCH: "Transaction ID Mismatch (Foreign Ref EW-999)",

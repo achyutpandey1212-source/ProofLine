@@ -111,9 +111,9 @@ export const SimulationModal: React.FC<SimulationModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-xl rounded-3xl bg-[#110e11] border border-white/10 shadow-[0_30px_90px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col font-display">
+      <div className="relative w-full max-w-xl max-h-[85vh] rounded-3xl bg-[#110e11] border border-white/10 shadow-[0_30px_90px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col font-display">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between bg-[#161216]/60">
+        <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between bg-[#161216]/60 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#FF6D29]/15 border border-[#FF6D29]/30 flex items-center justify-center text-[#FF6D29]">
               <FlaskConical className="w-4 h-4" />
@@ -137,8 +137,8 @@ export const SimulationModal: React.FC<SimulationModalProps> = ({
           </button>
         </div>
 
-        {/* Content & Scenario Cards */}
-        <div className="p-6 space-y-4">
+        {/* Content & Scenario Cards (Scrollable) */}
+        <div className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0 pr-4">
           <p className="text-xs text-[#BABABA] leading-relaxed">
             Select a controlled adversarial scenario to feed into Proofline&apos;s deterministic verification pipeline. Production database records will remain completely untouched.
           </p>
@@ -196,13 +196,17 @@ export const SimulationModal: React.FC<SimulationModalProps> = ({
           {simulationError && (
             <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-300 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
-              <span>{simulationError}</span>
+              <span>
+                {typeof simulationError === "object"
+                  ? (simulationError as any)?.message || JSON.stringify(simulationError)
+                  : String(simulationError)}
+              </span>
             </div>
           )}
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 border-t border-white/10 bg-[#161216]/60 flex items-center justify-between">
+        <div className="px-6 py-4 border-t border-white/10 bg-[#161216]/60 flex items-center justify-between shrink-0">
           <button
             onClick={onClose}
             disabled={isRunningSimulation}

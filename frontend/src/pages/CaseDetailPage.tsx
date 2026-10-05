@@ -673,6 +673,7 @@ export const CaseDetailPage: React.FC = () => {
           caseId={caseId!}
           isOpen={showSimModal}
           onClose={() => setShowSimModal(false)}
+          onSuccess={() => navigate(`/cases/${caseId}/verification`)}
         />
       )}
 

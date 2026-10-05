@@ -26,6 +26,8 @@ export class SimulationController {
         "INVOICE_MISMATCH",
         "TRANSACTION_MISMATCH",
         "EVIDENCE_INCONSISTENCY",
+        "EVIDENCE_REUSE",
+        "CHRONOLOGY_ANOMALY",
       ];
 
       if (!scenario || !validScenarios.includes(scenario)) {
