@@ -6,6 +6,9 @@ import { DocumentQuantityConsistencyRule } from "./rules/documentQuantityConsist
 import { EntityConsistencyRule } from "./rules/entityConsistency.rule";
 import { TransactionIdConsistencyRule } from "./rules/transactionIdConsistency.rule";
 import { MaterialConsistencyRule } from "./rules/materialConsistency.rule";
+import { EvidenceReuseDetectionRule } from "./rules/evidenceReuseDetection.rule";
+import { ChronologyConsistencyRule } from "./rules/chronologyConsistency.rule";
+import { SuspiciousUniformityDetectionRule } from "./rules/suspiciousUniformityDetection.rule";
 import { normalizeToKg } from "./normalization/normalizer";
 import { RiskLevel } from "../models/case.model";
 import { IRuleResult } from "../models/verification.model";
@@ -27,6 +30,9 @@ export interface VerificationEngineResult {
 export class VerificationEngine {
   private static rules: VerificationRule[] = [
     new EvidenceCompletenessRule(),
+    new EvidenceReuseDetectionRule(),
+    new ChronologyConsistencyRule(),
+    new SuspiciousUniformityDetectionRule(),
     new ExtractionConfidenceRule(),
     new WeightReconciliationRule(),
     new DocumentQuantityConsistencyRule(),

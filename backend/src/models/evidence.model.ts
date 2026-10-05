@@ -27,6 +27,7 @@ export interface IEvidenceFile {
   name: string;
   mimeType: string;
   sizeBytes: number;
+  fileHash?: string; // SHA-256 cryptographic digest of raw file buffer
 }
 
 export interface IEvidenceExtraction {
@@ -59,6 +60,7 @@ const EvidenceFileSchema = new Schema<IEvidenceFile>(
     name: { type: String, required: true },
     mimeType: { type: String, required: true },
     sizeBytes: { type: Number, required: true },
+    fileHash: { type: String, trim: true },
   },
   { _id: false }
 );
@@ -147,5 +149,7 @@ const EvidenceSchema = new Schema<IEvidence>(
 
 // Compound index for querying evidence per case
 EvidenceSchema.index({ caseId: 1, createdAt: 1 });
+// Index for fast cross-case SHA-256 fingerprint collision checks
+EvidenceSchema.index({ "file.fileHash": 1 });
 
 export const EvidenceModel = mongoose.model<IEvidence>("Evidence", EvidenceSchema);

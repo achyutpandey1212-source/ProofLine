@@ -107,6 +107,7 @@ export interface EvidenceItem {
     name: string;
     mimeType: string;
     sizeBytes: number;
+    fileHash?: string;
   };
   status: EvidenceStatus;
   extraction?: {
@@ -229,7 +230,9 @@ export type SimulationScenario =
   | "WEIGHT_MISMATCH"
   | "INVOICE_MISMATCH"
   | "TRANSACTION_MISMATCH"
-  | "EVIDENCE_INCONSISTENCY";
+  | "EVIDENCE_INCONSISTENCY"
+  | "EVIDENCE_REUSE"
+  | "CHRONOLOGY_ANOMALY";
 
 export interface SimulationResultDto {
   scenario: SimulationScenario;

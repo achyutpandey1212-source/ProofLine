@@ -11,6 +11,8 @@ import {
   RefreshCw,
   AlertTriangle,
   FlaskConical,
+  Copy,
+  Clock,
 } from "lucide-react";
 
 interface SimulationModalProps {
@@ -30,6 +32,24 @@ interface ScenarioOption {
 }
 
 const SCENARIOS: ScenarioOption[] = [
+  {
+    id: "EVIDENCE_REUSE",
+    title: "Cross-case evidence reuse",
+    subtitle: "Test cryptographic fingerprint collision.",
+    description:
+      "Simulates weighbridge ticket matching an identical SHA-256 fingerprint from a prior case (PL-REC-8841), triggering cross-case collision detection.",
+    icon: <Copy className="w-4 h-4 text-[#FF6D29]" />,
+    badge: "Provenance Collision",
+  },
+  {
+    id: "CHRONOLOGY_ANOMALY",
+    title: "Chronological impossibility",
+    subtitle: "Test physical event sequence.",
+    description:
+      "Simulates physical weighbridge ticket dated 5 days after the final commercial invoice was issued, violating sequence constraints.",
+    icon: <Clock className="w-4 h-4 text-[#FFA776]" />,
+    badge: "Timeline Anomaly",
+  },
   {
     id: "WEIGHT_MISMATCH",
     title: "Weight mismatch",

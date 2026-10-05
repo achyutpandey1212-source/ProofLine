@@ -565,7 +565,17 @@ export const VerificationReportPage: React.FC = () => {
                           <FileText className="w-3.5 h-3.5 text-[#FF6D29] shrink-0" />
                           <div>
                             <div className="text-white font-medium">{ev.file.name}</div>
-                            <div className="text-[10px] font-mono text-[#BABABA]/50">{ev.evidenceId}</div>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[10px] font-mono text-[#BABABA]/50">{ev.evidenceId}</span>
+                              {ev.file.fileHash && (
+                                <span
+                                  className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-white/[0.04] border border-white/[0.08] text-[#BABABA]/70"
+                                  title={`SHA-256: ${ev.file.fileHash}`}
+                                >
+                                  SHA: {ev.file.fileHash.slice(0, 8)}...
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </td>

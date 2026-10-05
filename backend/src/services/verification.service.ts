@@ -56,10 +56,47 @@ export class VerificationService {
       );
     }
 
-    // 4. Run deterministic verification engine
+    // 4. Cross-case SHA-256 collision query:
+    // Check if any evidence file in this case matches a file uploaded to another case
+    const evidenceHashes = evidenceDocs
+      .map((e) => e.file.fileHash)
+      .filter((h): h is string => Boolean(h && h.length > 0));
+
+    const crossCaseCollisions: {
+      evidenceId: string;
+      fileHash: string;
+      collidingCaseId: string;
+      collidingTransactionId: string;
+      collidingEvidenceId: string;
+      collidingUploadedAt: Date;
+    }[] = [];
+
+    if (evidenceHashes.length > 0) {
+      const collidingEvidence = await EvidenceModel.find({
+        caseId: { $ne: caseDoc._id },
+        "file.fileHash": { $in: evidenceHashes },
+      }).populate<{ caseId: ICase }>("caseId");
+
+      for (const coll of collidingEvidence) {
+        const localMatch = evidenceDocs.find((e) => e.file.fileHash === coll.file.fileHash);
+        if (localMatch && coll.caseId) {
+          crossCaseCollisions.push({
+            evidenceId: localMatch.evidenceId,
+            fileHash: coll.file.fileHash || "",
+            collidingCaseId: coll.caseId.caseId,
+            collidingTransactionId: coll.caseId.transactionId,
+            collidingEvidenceId: coll.evidenceId,
+            collidingUploadedAt: coll.createdAt,
+          });
+        }
+      }
+    }
+
+    // 5. Run deterministic verification engine
     const engineResult: VerificationEngineResult = VerificationEngine.verify({
       caseDoc,
       evidenceDocs,
+      crossCaseCollisions,
     });
 
     // 5. Idempotent Verification Persistence:

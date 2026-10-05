@@ -283,8 +283,12 @@ export class ProofGraphService {
       // Connect rules cleanly according to their domain
       const relevantEvidenceIds = ruleRes.evidenceIds || [];
 
-      // Global document-level rules connect cleanly to EVIDENCE nodes
-      if (ruleRes.ruleId === "EVIDENCE_COMPLETENESS" || ruleRes.ruleId === "EXTRACTION_CONFIDENCE") {
+      // Global document-level and integrity rules connect cleanly to EVIDENCE nodes
+      if (
+        ruleRes.ruleId === "EVIDENCE_COMPLETENESS" ||
+        ruleRes.ruleId === "EXTRACTION_CONFIDENCE" ||
+        ruleRes.ruleId === "EVIDENCE_REUSE_DETECTION"
+      ) {
         for (const evId of relevantEvidenceIds) {
           const evNodeId = `evidence-${evId}`;
           edges.push({
@@ -301,7 +305,10 @@ export class ProofGraphService {
           const factKeys = evidenceFactKeyMap.get(evId);
           let targetedFactId: string | undefined;
 
-          if (ruleRes.ruleId === "WEIGHT_RECONCILIATION") {
+          if (
+            ruleRes.ruleId === "WEIGHT_RECONCILIATION" ||
+            ruleRes.ruleId === "SUSPICIOUS_UNIFORMITY_DETECTION"
+          ) {
             targetedFactId = factKeys?.get("weight") || factKeys?.get("netWeight");
           } else if (ruleRes.ruleId === "ENTITY_CONSISTENCY") {
             targetedFactId = factKeys?.get("sellerName") || factKeys?.get("issuerName");

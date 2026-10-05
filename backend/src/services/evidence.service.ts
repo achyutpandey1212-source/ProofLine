@@ -84,7 +84,10 @@ export class EvidenceService {
       );
     }
 
-    // 4. Persist Evidence document in MongoDB with atomicity cleanup
+    // 4. Compute immutable SHA-256 content digest
+    const fileHash = crypto.createHash("sha256").update(fileBuffer).digest("hex");
+
+    // 5. Persist Evidence document in MongoDB with atomicity cleanup
     const evidenceId = this.generateEvidenceId();
 
     try {
@@ -100,6 +103,7 @@ export class EvidenceService {
           name: sanitizedName,
           mimeType,
           sizeBytes,
+          fileHash,
         },
         status: "UPLOADED",
         extraction: {

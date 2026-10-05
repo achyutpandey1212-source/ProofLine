@@ -2,9 +2,19 @@ import { IRuleResult } from "../../models/verification.model";
 import { IEvidence } from "../../models/evidence.model";
 import { ICase } from "../../models/case.model";
 
+export interface CrossCaseCollisionInfo {
+  evidenceId: string;
+  fileHash: string;
+  collidingCaseId: string;
+  collidingTransactionId: string;
+  collidingEvidenceId: string;
+  collidingUploadedAt: Date;
+}
+
 export interface VerificationContext {
   caseDoc: ICase;
   evidenceDocs: IEvidence[];
+  crossCaseCollisions?: CrossCaseCollisionInfo[];
 }
 
 export interface RuleEvaluationOutput {

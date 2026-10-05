@@ -10,7 +10,9 @@ export type SimulationScenario =
   | "WEIGHT_MISMATCH"
   | "INVOICE_MISMATCH"
   | "TRANSACTION_MISMATCH"
-  | "EVIDENCE_INCONSISTENCY";
+  | "EVIDENCE_INCONSISTENCY"
+  | "EVIDENCE_REUSE"
+  | "CHRONOLOGY_ANOMALY";
 
 export interface SimulationResultDto {
   scenario: SimulationScenario;
@@ -74,6 +76,16 @@ export class SimulationService {
 
     let scenarioTitle = "";
     let scenarioDescription = "";
+    let simulatedCollisions:
+      | {
+          evidenceId: string;
+          fileHash: string;
+          collidingCaseId: string;
+          collidingTransactionId: string;
+          collidingEvidenceId: string;
+          collidingUploadedAt: Date;
+        }[]
+      | undefined;
 
     // 3. Apply scenario-specific deterministic mutations
     switch (scenario) {
@@ -215,12 +227,83 @@ export class SimulationService {
         simulatedNodeIds.add(`fact-${docTarget.evidenceId}-materialDescription`);
         break;
       }
+
+      case "EVIDENCE_REUSE": {
+        scenarioTitle = "Cross-Case Evidence Reuse & Fingerprint Collision";
+        scenarioDescription =
+          "Simulates submitted weighbridge slip matching a document previously used in another transaction (PL-REC-8841).";
+
+        const scaleTarget =
+          clonedEvidenceDocs.find((e) => e.type === "SCALE_IMAGE") || clonedEvidenceDocs[0]!;
+
+        const collisionHash = "8f4e2b10a9c735d4e11fa9b8821034fe7d0cba45112e8967019a3b65ef0218de";
+
+        mutatedFields.push({
+          target: "EVIDENCE",
+          identifier: scaleTarget.evidenceId,
+          field: "fileHash",
+          originalValue: scaleTarget.file.fileHash || "Uncollided Fingerprint",
+          simulatedValue: `Colliding Hash (${collisionHash.slice(0, 16)}...) from Transaction EW-089 (PL-REC-8841)`,
+        });
+
+        simulatedNodeIds.add(`evidence-${scaleTarget.evidenceId}`);
+
+        // Provide simulated crossCaseCollisions directly to engine
+        simulatedCollisions = [
+          {
+            evidenceId: scaleTarget.evidenceId,
+            fileHash: collisionHash,
+            collidingCaseId: "PL-REC-8841",
+            collidingTransactionId: "EW-089",
+            collidingEvidenceId: "EVD-PRIOR-441",
+            collidingUploadedAt: new Date(Date.now() - 14 * 86400000), // 14 days ago
+          },
+        ];
+        break;
+      }
+
+      case "CHRONOLOGY_ANOMALY": {
+        scenarioTitle = "Chronological Impossibility";
+        scenarioDescription =
+          "Simulates physical weighbridge ticket dated 5 days after the final commercial invoice was issued.";
+
+        const scaleTarget =
+          clonedEvidenceDocs.find((e) => e.type === "SCALE_IMAGE") || clonedEvidenceDocs[0]!;
+
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 5);
+        const futureDateStr = futureDate.toISOString().split("T")[0]!;
+
+        const originalDate =
+          (scaleTarget.extraction.data?.["ticketDate"] as string) ||
+          (scaleTarget.extraction.data?.["date"] as string) ||
+          "2026-09-28";
+
+        scaleTarget.extraction.data = {
+          ...(scaleTarget.extraction.data || {}),
+          ticketDate: futureDateStr,
+          date: futureDateStr,
+        };
+
+        mutatedFields.push({
+          target: "EVIDENCE",
+          identifier: scaleTarget.evidenceId,
+          field: "ticketDate",
+          originalValue: originalDate,
+          simulatedValue: `${futureDateStr} (+5 days post-invoice)`,
+        });
+
+        simulatedNodeIds.add(`evidence-${scaleTarget.evidenceId}`);
+        simulatedNodeIds.add(`fact-${scaleTarget.evidenceId}-date`);
+        break;
+      }
     }
 
     // 4. Run real VerificationEngine against the isolated context
     const engineResult = VerificationEngine.verify({
       caseDoc: clonedCaseDoc,
       evidenceDocs: clonedEvidenceDocs,
+      crossCaseCollisions: typeof simulatedCollisions !== "undefined" ? simulatedCollisions : undefined,
     });
 
     // 5. Build synthetic verification and finding objects (without saving to MongoDB)
