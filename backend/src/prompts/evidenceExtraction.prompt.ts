@@ -24,11 +24,15 @@ export const getExtractionPromptForType = (evidenceType: EvidenceType): string =
   switch (evidenceType) {
     case "SCALE_IMAGE":
       return `Analyze this weighing scale photograph or weighbridge ticket/slip and extract the visible scale or net weight readings.
-If gross, tare, and net weights are shown, extract the net weight (actual cargo/material weight).
+CRITICAL FOR WEIGHBRIDGE TICKETS:
+- Look for the printed "Net Weight" or "Net Wt" line on the ticket (e.g. 184.60, 184.50, 186.50 kg).
+- Always extract the explicit printed Net Weight value directly as a floating-point numeric value (e.g. 184.6, 184.5, 186.5).
+- Do NOT calculate gross minus tare or drop decimal points when an explicit printed Net Weight line appears on the slip.
+- The weight must reflect the actual net cargo weight in decimal kilograms (e.g. 186.5, NOT 18650).
 
 Target JSON Schema:
 {
-  "weight": number | null,            // Numeric value on the scale or net weight on ticket (e.g. 184.6)
+  "weight": number | null,            // Numeric net weight value (e.g. 186.5)
   "unit": string | null,              // Unit shown (e.g. "kg", "lbs", "g")
   "date": string | null,              // Visible date string if display shows it (YYYY-MM-DD), otherwise null
   "time": string | null,              // Visible time string if display shows it (HH:MM:SS), otherwise null

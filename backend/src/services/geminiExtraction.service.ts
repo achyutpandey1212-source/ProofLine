@@ -19,45 +19,77 @@ export class GeminiExtractionService {
     mimeType: string;
   }): Promise<string> {
     return geminiProvider.execute(async (apiKey: string) => {
-      logger.info("Invoking Gemini multimodal API with active pool key", {
-        model: geminiProvider.modelName,
-        mimeType: params.mimeType,
-        bufferLength: params.fileBuffer.length,
-      });
+      const modelsToTry = [
+        geminiProvider.modelName,
+        "gemini-3.5-flash",
+        "gemini-2.5-flash",
+      ].filter((m, i, arr) => m && arr.indexOf(m) === i);
 
-      const ai = new GoogleGenAI({ apiKey });
+      let lastError: unknown;
 
-      const response = await ai.models.generateContent({
-        model: geminiProvider.modelName,
-        contents: [
-          {
-            role: "user",
-            parts: [
+      for (const model of modelsToTry) {
+        try {
+          logger.info("Invoking Gemini multimodal API with active pool key", {
+            model,
+            mimeType: params.mimeType,
+            bufferLength: params.fileBuffer.length,
+          });
+
+          const ai = new GoogleGenAI({ apiKey });
+
+          const response = await ai.models.generateContent({
+            model,
+            contents: [
               {
-                inlineData: {
-                  mimeType: params.mimeType,
-                  data: params.fileBuffer.toString("base64"),
-                },
-              },
-              {
-                text: params.prompt,
+                role: "user",
+                parts: [
+                  {
+                    inlineData: {
+                      mimeType: params.mimeType,
+                      data: params.fileBuffer.toString("base64"),
+                    },
+                  },
+                  {
+                    text: params.prompt,
+                  },
+                ],
               },
             ],
-          },
-        ],
-        config: {
-          systemInstruction: params.systemInstruction,
-          responseMimeType: "application/json",
-          temperature: 0.1, // Low temperature for deterministic extraction
-        },
-      });
+            config: {
+              systemInstruction: params.systemInstruction,
+              responseMimeType: "application/json",
+              temperature: 0.1, // Low temperature for deterministic extraction
+            },
+          });
 
-      const text = response.text;
-      if (!text || text.trim().length === 0) {
-        throw new AppError("Empty response returned by Gemini model", 502, "EMPTY_MODEL_RESPONSE");
+          const text = response.text;
+          if (!text || text.trim().length === 0) {
+            throw new AppError("Empty response returned by Gemini model", 502, "EMPTY_MODEL_RESPONSE");
+          }
+
+          return text;
+        } catch (err) {
+          lastError = err;
+          const msg = err instanceof Error ? err.message : String(err);
+          if (
+            msg.includes("503") ||
+            msg.includes("high demand") ||
+            msg.includes("UNAVAILABLE") ||
+            msg.includes("not found") ||
+            msg.includes("404") ||
+            msg.includes("429") ||
+            msg.includes("RESOURCE_EXHAUSTED")
+          ) {
+            logger.warn(`Model ${model} unavailable or capacity spike. Retrying with fallback model...`, {
+              error: msg,
+            });
+            continue;
+          }
+          throw err;
+        }
       }
 
-      return text;
+      throw lastError;
     });
   }
 }

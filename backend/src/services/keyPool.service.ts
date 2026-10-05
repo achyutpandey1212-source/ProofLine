@@ -53,12 +53,14 @@ export class ApiKeyPool {
     });
   }
 
+  private lastUsedIndex: number = -1;
+
   public getKeyCount(): number {
     return this.keys.length;
   }
 
   /**
-   * Selects a healthy key from the pool.
+   * Selects a healthy key from the pool using round-robin rotation.
    * Checks cooldowns and transitions recovered keys back to AVAILABLE.
    */
   public getHealthyKey(): string | null {
@@ -72,8 +74,19 @@ export class ApiKeyPool {
       }
     }
 
-    const availableKey = this.keys.find((item) => item.state === "AVAILABLE");
-    return availableKey ? availableKey.key : null;
+    if (this.keys.length === 0) return null;
+
+    // Search round-robin starting from lastUsedIndex + 1
+    for (let i = 0; i < this.keys.length; i++) {
+      const idx = (this.lastUsedIndex + 1 + i) % this.keys.length;
+      const keyItem = this.keys[idx];
+      if (keyItem && keyItem.state === "AVAILABLE") {
+        this.lastUsedIndex = idx;
+        return keyItem.key;
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -126,12 +139,12 @@ export class ApiKeyPool {
         break;
 
       case "TEMPORARY_FAILURE":
-        // Temporary 5xx or network issue: increment failures; cooldown if persistent
-        if (item.failureCount >= 3) {
+        // For temporary 503 capacity spikes: put in a short cooldown (15s) after 2 failures so other healthy keys are used
+        if (item.failureCount >= 2) {
           item.state = "COOLDOWN";
-          item.cooldownUntil = now + this.cooldownDurationMs;
+          item.cooldownUntil = now + 15_000;
           logger.warn(
-            `Key in pool [${this.providerName}] entered COOLDOWN after repeated temporary failures`
+            `Key in pool [${this.providerName}] entered short 15s COOLDOWN after temporary failure/503 spike`
           );
         }
         break;
@@ -174,7 +187,9 @@ export class ApiKeyPool {
       lower.includes("api key not valid") ||
       lower.includes("invalid_api_key") ||
       lower.includes("authentication") ||
-      lower.includes("unauthenticated")
+      lower.includes("unauthenticated") ||
+      lower.includes("denied access") ||
+      lower.includes("permission denied")
     ) {
       return "INVALID_CREDENTIALS";
     }
@@ -197,11 +212,12 @@ export class ApiKeyPool {
    */
   public async executeWithKey<T>(
     operation: (apiKey: string) => Promise<T>,
-    maxRetries: number = 3
+    maxRetries?: number
   ): Promise<T> {
+    const effectiveMaxRetries = maxRetries ?? Math.max(this.keys.length, 8);
     let attempts = 0;
 
-    while (attempts < maxRetries) {
+    while (attempts < effectiveMaxRetries) {
       attempts++;
       const currentKey = this.getHealthyKey();
 
@@ -225,16 +241,16 @@ export class ApiKeyPool {
         }
 
         // If we reached the maximum retry limit, stop and propagate
-        if (attempts >= maxRetries) {
+        if (attempts >= effectiveMaxRetries) {
           throw err;
         }
 
-        // Bounded jittered exponential delay for transient retries
-        const backoffMs = Math.min(1000 * Math.pow(2, attempts - 1) + Math.random() * 200, 5000);
+        // Gentle jittered delay before next key attempt
+        const backoffMs = Math.min(300 * attempts + Math.random() * 200, 2000);
         await new Promise((resolve) => setTimeout(resolve, backoffMs));
       }
     }
 
-    throw new Error(`Exceeded maximum retries (${maxRetries}) for provider [${this.providerName}].`);
+    throw new Error(`Exceeded maximum retries (${effectiveMaxRetries}) for provider [${this.providerName}].`);
   }
 }

@@ -366,7 +366,7 @@ export const InteractiveDemoProvider: React.FC<{ children: React.ReactNode }> = 
       // Monitor verification status as VerificationFlowPage runs
       let isVerified = false;
       const startTime = Date.now();
-      while (!isVerified && Date.now() - startTime < 45000) {
+      while (!isVerified && Date.now() - startTime < 180000) {
         if (abortRef.current) return;
         await sleep(1400);
         try {

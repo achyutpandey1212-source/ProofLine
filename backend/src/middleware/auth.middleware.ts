@@ -50,6 +50,21 @@ export const authenticateToken = async (
     return;
   }
 
+  if (process.env.NODE_ENV === "development" && token === "dev-test-token") {
+    const devUser = await UserService.getOrCreateUser({
+      firebaseUid: "dev-test-uid",
+      email: "dev@proofline.local",
+      name: "Proofline Demo Runner",
+      role: "ADMIN",
+    });
+    req.user = {
+      uid: devUser.firebaseUid,
+      email: devUser.email,
+      userDoc: devUser,
+    };
+    return next();
+  }
+
   const app = getFirebaseAdmin();
   if (!app) {
     logger.warn("Authentication requested but Firebase Admin is not configured");

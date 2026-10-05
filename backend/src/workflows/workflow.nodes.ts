@@ -194,68 +194,68 @@ export async function extractionNode(
   const transientErrors: string[] = [];
   const permanentErrors: string[] = [];
 
-  // Bounded concurrency pool: process 2 items at a time to prevent rate limits
-  const concurrency = 2;
-  for (let i = 0; i < toExtract.length; i += concurrency) {
-    const batch = toExtract.slice(i, i + concurrency);
+  // Process evidence items sequentially with gentle spacing to avoid Google API burst limits
+  for (let i = 0; i < toExtract.length; i++) {
+    const evidenceId = toExtract[i];
+    if (!evidenceId) continue;
 
-    await Promise.all(
-      batch.map(async (evidenceId) => {
-        try {
-          const updatedDoc = await ExtractionService.extractEvidence({
-            userId,
-            caseIdOrMongoId: state.caseId,
-            evidenceIdOrMongoId: evidenceId,
-          });
+    if (i > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 600));
+    }
 
-          // Add to extracted list
-          if (!updatedExtractedIds.includes(evidenceId)) {
-            updatedExtractedIds.push(evidenceId);
-          }
+    try {
+      const updatedDoc = await ExtractionService.extractEvidence({
+        userId,
+        caseIdOrMongoId: state.caseId,
+        evidenceIdOrMongoId: evidenceId,
+      });
 
-          // Update local state copy
-          const idx = updatedEvidenceList.findIndex((e) => e.evidenceId === evidenceId);
-          if (idx !== -1) {
-            updatedEvidenceList[idx] = {
-              evidenceId: updatedDoc.evidenceId,
-              type: updatedDoc.type,
-              fileUrl: updatedDoc.file.url,
-              mimeType: updatedDoc.file.mimeType,
-              status: updatedDoc.status,
-              extractionData: updatedDoc.extraction?.data,
-              confidence: updatedDoc.extraction?.confidence,
-              warnings: updatedDoc.extraction?.warnings,
-            };
-          }
-        } catch (err: unknown) {
-          const failureClass: FailureClass = ApiKeyPool.classifyError(err);
-          const errMsg = err instanceof Error ? err.message : String(err);
+      // Add to extracted list
+      if (!updatedExtractedIds.includes(evidenceId)) {
+        updatedExtractedIds.push(evidenceId);
+      }
 
-          logger.error(`[Workflow] Extraction failed for evidence ${evidenceId}`, {
-            failureClass,
-            error: errMsg,
-          });
+      // Update local state copy
+      const idx = updatedEvidenceList.findIndex((e) => e.evidenceId === evidenceId);
+      if (idx !== -1) {
+        updatedEvidenceList[idx] = {
+          evidenceId: updatedDoc.evidenceId,
+          type: updatedDoc.type,
+          fileUrl: updatedDoc.file.url,
+          mimeType: updatedDoc.file.mimeType,
+          status: updatedDoc.status,
+          extractionData: updatedDoc.extraction?.data,
+          confidence: updatedDoc.extraction?.confidence,
+          warnings: updatedDoc.extraction?.warnings,
+        };
+      }
+    } catch (err: unknown) {
+      const failureClass: FailureClass = ApiKeyPool.classifyError(err);
+      const errMsg = err instanceof Error ? err.message : String(err);
 
-          const isPermanent =
-            failureClass === "INVALID_REQUEST" ||
-            (err instanceof AppError &&
-              (err.code === "SCHEMA_VALIDATION_FAILED" ||
-                err.code === "INVALID_MODEL_OUTPUT" ||
-                err.code === "NOT_FOUND" ||
-                err.code === "ALREADY_PROCESSING"));
+      logger.error(`[Workflow] Extraction failed for evidence ${evidenceId}`, {
+        failureClass,
+        error: errMsg,
+      });
 
-          if (isPermanent) {
-            permanentErrors.push(`${evidenceId}: ${errMsg}`);
-            if (!updatedFailedIds.includes(evidenceId)) {
-              updatedFailedIds.push(evidenceId);
-            }
-          } else {
-            // Rate limit, quota, temporary failure, or network error
-            transientErrors.push(`${evidenceId}: ${errMsg}`);
-          }
+      const isPermanent =
+        failureClass === "INVALID_REQUEST" ||
+        (err instanceof AppError &&
+          (err.code === "SCHEMA_VALIDATION_FAILED" ||
+            err.code === "INVALID_MODEL_OUTPUT" ||
+            err.code === "NOT_FOUND" ||
+            err.code === "ALREADY_PROCESSING"));
+
+      if (isPermanent) {
+        permanentErrors.push(`${evidenceId}: ${errMsg}`);
+        if (!updatedFailedIds.includes(evidenceId)) {
+          updatedFailedIds.push(evidenceId);
         }
-      })
-    );
+      } else {
+        // Rate limit, quota, temporary failure, or network error
+        transientErrors.push(`${evidenceId}: ${errMsg}`);
+      }
+    }
   }
 
   // Recalculate remaining pending IDs
@@ -268,6 +268,9 @@ export async function extractionNode(
       logger.warn(`[Workflow] Transient extraction failure detected. Transitioning to WAITING_RETRY (Attempt ${nextRetry}/${state.maxRetries})`, {
         transientErrors,
       });
+
+      // Pause to allow rate limits / transient spikes to clear
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const updates: Partial<VerificationWorkflowState> = {
         evidenceList: updatedEvidenceList,
