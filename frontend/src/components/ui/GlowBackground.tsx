@@ -13,32 +13,14 @@ export const GlowBackground: React.FC<GlowBackgroundProps> = ({
 }) => {
   return (
     <div className={`relative min-h-screen bg-[#080808] text-white selection:bg-[#FF6D29]/20 selection:text-white overflow-x-clip ${className}`}>
-      {/* Top ambient radial bloom */}
+      {/* Subtle atmospheric vignette at the very top (restrained, no heavy orange cast) */}
       <div
-        className={`absolute -top-32 left-1/2 -translate-x-1/2 w-[650px] sm:w-[900px] h-[520px] pointer-events-none blur-[130px] ${
-          glowIntensity === "prominent" ? "opacity-45" : "opacity-30"
+        className={`absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] sm:w-[900px] h-[400px] pointer-events-none blur-[140px] ${
+          glowIntensity === "prominent" ? "opacity-12" : "opacity-0"
         }`}
         style={{
           background:
-            "radial-gradient(ellipse 70% 60% at 50% 30%, #FF6D29 0%, #B83B1B 45%, #453027 80%, transparent 100%)",
-        }}
-      />
-
-      {/* Orbital curved ring arcs on left and right */}
-      <div
-        className="absolute -top-16 -left-48 sm:-left-28 w-[380px] sm:w-[500px] h-[640px] pointer-events-none rounded-full border border-[#FF6D29]/15 blur-[1px] opacity-40"
-        style={{
-          background:
-            "radial-gradient(ellipse at 80% 50%, rgba(255, 109, 41, 0.18) 0%, rgba(69, 48, 39, 0.08) 50%, transparent 80%)",
-          transform: "rotate(-18deg)",
-        }}
-      />
-      <div
-        className="absolute -top-16 -right-48 sm:-right-28 w-[380px] sm:w-[500px] h-[640px] pointer-events-none rounded-full border border-[#FF6D29]/15 blur-[1px] opacity-40"
-        style={{
-          background:
-            "radial-gradient(ellipse at 20% 50%, rgba(255, 109, 41, 0.18) 0%, rgba(69, 48, 39, 0.08) 50%, transparent 80%)",
-          transform: "rotate(18deg)",
+            "radial-gradient(ellipse 70% 50% at 50% 30%, #FF6D29 0%, #B83B1B 45%, #251B17 80%, transparent 100%)",
         }}
       />
 

@@ -18,7 +18,6 @@ import {
   AlertTriangle,
   Clock,
   ShieldCheck,
-  Building2,
   Activity,
   Layers,
 } from "lucide-react";
@@ -176,7 +175,7 @@ export const CasesListPage: React.FC = () => {
           <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={() => setShowApiKeyModal(true)}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-display text-white transition cursor-pointer"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-display text-white transition cursor-pointer"
               title="Manage API Keys for external integrations"
             >
               <Key className="w-3.5 h-3.5 text-[#FF6D29]" />
@@ -185,7 +184,7 @@ export const CasesListPage: React.FC = () => {
             <button
               onClick={startInteractiveDemo}
               disabled={demoState.isActive}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium shadow-[0_0_24px_rgba(255,109,41,0.35)] hover:shadow-[0_0_32px_rgba(255,109,41,0.55)] transition-all cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF6D29] hover:bg-[#ff7b3d] text-white text-xs font-display font-medium transition-all cursor-pointer disabled:opacity-50"
               title="Runs autonomous end-to-end interactive demo through real workflow"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
@@ -193,7 +192,7 @@ export const CasesListPage: React.FC = () => {
             </button>
             <Link
               to="/cases/new"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] border border-white/15 text-white text-xs font-display font-medium transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-white text-xs font-display font-medium transition-all"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>+ New Claim</span>
@@ -233,7 +232,7 @@ export const CasesListPage: React.FC = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
             {/* Total Claims */}
-            <div className="rounded-2xl bg-[#141215]/85 border border-white/10 p-4.5 backdrop-blur-xl space-y-1">
+            <div className="rounded-2xl bg-[#110F11]/80 border border-white/[0.08] hover:border-white/20 p-4.5 backdrop-blur-xl space-y-1 transition">
               <div className="text-[11px] font-mono text-[#BABABA] uppercase tracking-wider flex items-center justify-between">
                 <span>Total Claims</span>
                 <Layers className="w-3.5 h-3.5 text-[#BABABA]/50" />
@@ -245,48 +244,60 @@ export const CasesListPage: React.FC = () => {
             </div>
 
             {/* Needs Review */}
-            <div className="rounded-2xl bg-[#141215]/85 border border-[#FF6D29]/30 p-4.5 backdrop-blur-xl space-y-1 shadow-[0_0_20px_rgba(255,109,41,0.08)]">
-              <div className="text-[11px] font-mono text-[#FFA776] uppercase tracking-wider flex items-center justify-between">
-                <span>Needs Review</span>
+            <div className="rounded-2xl bg-[#110F11]/80 border border-white/[0.08] hover:border-white/20 p-4.5 backdrop-blur-xl space-y-1 transition">
+              <div className="text-[11px] font-mono text-[#BABABA] uppercase tracking-wider flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF6D29]" />
+                  Needs Review
+                </span>
                 <AlertTriangle className="w-3.5 h-3.5 text-[#FF6D29]" />
               </div>
-              <div className="text-2xl sm:text-3xl font-mono font-bold text-[#FFA776]">
+              <div className="text-2xl sm:text-3xl font-mono font-bold text-white">
                 {counts.needsReview}
               </div>
               <div className="text-[10px] text-[#BABABA]/60">High risk / discrepancy</div>
             </div>
 
             {/* Clarification */}
-            <div className="rounded-2xl bg-[#141215]/85 border border-amber-500/25 p-4.5 backdrop-blur-xl space-y-1">
-              <div className="text-[11px] font-mono text-amber-300 uppercase tracking-wider flex items-center justify-between">
-                <span>Clarification</span>
+            <div className="rounded-2xl bg-[#110F11]/80 border border-white/[0.08] hover:border-white/20 p-4.5 backdrop-blur-xl space-y-1 transition">
+              <div className="text-[11px] font-mono text-[#BABABA] uppercase tracking-wider flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                  Clarification
+                </span>
                 <Clock className="w-3.5 h-3.5 text-amber-400" />
               </div>
-              <div className="text-2xl sm:text-3xl font-mono font-bold text-amber-300">
+              <div className="text-2xl sm:text-3xl font-mono font-bold text-white">
                 {counts.clarification}
               </div>
               <div className="text-[10px] text-[#BABABA]/60">Awaiting vendor response</div>
             </div>
 
             {/* Approved */}
-            <div className="rounded-2xl bg-[#141215]/85 border border-emerald-500/25 p-4.5 backdrop-blur-xl space-y-1">
-              <div className="text-[11px] font-mono text-emerald-300 uppercase tracking-wider flex items-center justify-between">
-                <span>Approved</span>
+            <div className="rounded-2xl bg-[#110F11]/80 border border-white/[0.08] hover:border-white/20 p-4.5 backdrop-blur-xl space-y-1 transition">
+              <div className="text-[11px] font-mono text-[#BABABA] uppercase tracking-wider flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  Approved
+                </span>
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
               </div>
-              <div className="text-2xl sm:text-3xl font-mono font-bold text-emerald-300">
+              <div className="text-2xl sm:text-3xl font-mono font-bold text-white">
                 {counts.approved}
               </div>
               <div className="text-[10px] text-[#BABABA]/60">Institutional sign-off sealed</div>
             </div>
 
             {/* Rejected */}
-            <div className="rounded-2xl bg-[#141215]/85 border border-red-500/25 p-4.5 backdrop-blur-xl space-y-1 col-span-2 sm:col-span-1">
-              <div className="text-[11px] font-mono text-red-300 uppercase tracking-wider flex items-center justify-between">
-                <span>Rejected</span>
+            <div className="rounded-2xl bg-[#110F11]/80 border border-white/[0.08] hover:border-white/20 p-4.5 backdrop-blur-xl space-y-1 transition col-span-2 sm:col-span-1">
+              <div className="text-[11px] font-mono text-[#BABABA] uppercase tracking-wider flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                  Rejected
+                </span>
                 <AlertCircle className="w-3.5 h-3.5 text-red-400" />
               </div>
-              <div className="text-2xl sm:text-3xl font-mono font-bold text-red-300">
+              <div className="text-2xl sm:text-3xl font-mono font-bold text-white">
                 {counts.rejected}
               </div>
               <div className="text-[10px] text-[#BABABA]/60">Unsafe claim dismissed</div>
@@ -295,7 +306,7 @@ export const CasesListPage: React.FC = () => {
 
           {/* Operational Insight Banner (Shown only when real cases exist) */}
           {counts.total > 0 && (
-            <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] px-4 py-2.5 flex items-center justify-between text-xs font-display text-[#BABABA]">
+            <div className="rounded-xl bg-[#110F11]/80 border border-white/[0.08] px-4 py-2.5 flex items-center justify-between text-xs font-display text-[#BABABA]">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 <span>
@@ -322,20 +333,20 @@ export const CasesListPage: React.FC = () => {
                 Priority claims requiring immediate human compliance review
               </p>
             </div>
-            <span className="text-xs font-mono text-[#FFA776] bg-[#FF6D29]/10 border border-[#FF6D29]/20 px-2.5 py-1 rounded-full">
+            <span className="text-xs font-mono text-[#BABABA] bg-white/[0.04] border border-white/[0.08] px-2.5 py-1 rounded-lg">
               {attentionQueue.length} Priority Item(s)
             </span>
           </div>
 
           {attentionQueue.length === 0 ? (
             /* Successful empty state */
-            <div className="rounded-2xl bg-emerald-500/[0.06] border border-emerald-500/20 p-6 flex items-center gap-4 text-xs">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0 text-emerald-400">
+            <div className="rounded-2xl bg-[#110F11]/80 border border-white/[0.08] p-6 flex items-center gap-4 text-xs">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 text-emerald-400">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
                 <div className="font-semibold text-white text-sm">Everything is accounted for</div>
-                <p className="text-emerald-300/80 mt-0.5">
+                <p className="text-[#BABABA] mt-0.5">
                   No claims currently require operator attention. All transactions have been verified or resolved.
                 </p>
               </div>
@@ -349,24 +360,23 @@ export const CasesListPage: React.FC = () => {
                 return (
                   <div
                     key={`attention-${c.caseId}`}
-                    className="rounded-2xl bg-[#141215]/90 border border-[#FF6D29]/30 hover:border-[#FF6D29]/60 p-5 shadow-[0_4px_24px_rgba(0,0,0,0.6)] backdrop-blur-xl space-y-3 transition-all"
+                    className="rounded-2xl bg-[#110F11]/80 border border-white/[0.08] hover:border-white/20 p-5 backdrop-blur-xl flex flex-col justify-between gap-4 transition-all group"
                   >
                     {/* Header Row */}
                     <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-base font-semibold text-white">
+                      <div className="space-y-1 min-w-0 pr-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono text-base font-semibold text-white tracking-tight">
                             {c.transactionId}
                           </span>
-                          <span className="text-[10px] font-mono text-[#BABABA]/50">
+                          <span className="text-[10px] font-mono text-[#BABABA]/60 bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.06]">
                             {c.caseId}
                           </span>
                         </div>
-                        <div className="text-xs text-[#BABABA] flex items-center gap-1.5 mt-0.5">
-                          <Building2 className="w-3 h-3 text-[#FF6D29]" />
-                          <span>{c.partnerName}</span>
-                          <span>&bull;</span>
-                          <span className="text-white/80">{c.material}</span>
+                        <div className="text-xs text-[#BABABA] flex items-center gap-2 truncate">
+                          <span className="text-zinc-300 font-medium truncate">{c.partnerName}</span>
+                          <span className="text-white/20">&bull;</span>
+                          <span className="text-[#BABABA]/80 truncate">{c.material}</span>
                         </div>
                       </div>
 
@@ -379,44 +389,58 @@ export const CasesListPage: React.FC = () => {
                     </div>
 
                     {/* Operational Finding Signals */}
-                    <div className="rounded-xl bg-black/40 border border-white/[0.06] p-3 space-y-2">
-                      {variance !== undefined && (
+                    <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-3 space-y-2">
+                      {variance !== undefined ? (
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-[#BABABA]">Reconciliation Variance:</span>
+                          <span className="text-[#BABABA] text-[11px]">Reconciliation Variance:</span>
                           <span className={`font-mono font-semibold ${Math.abs(variance) > 2.0 ? "text-red-400" : "text-emerald-400"}`}>
                             {variance}% {Math.abs(variance) > 2.0 ? "(Tolerance Exceeded)" : "(Within Limit)"}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-[#BABABA] text-[11px]">Claimed Consignment:</span>
+                          <span className="font-mono text-xs text-white">
+                            {c.claimedQuantity.toLocaleString()}{" "}
+                            <span className="text-[#BABABA]/60 text-[11px]">{c.unit}</span>
                           </span>
                         </div>
                       )}
 
                       {findingsList.length > 0 ? (
-                        <div className="space-y-1 pt-1 border-t border-white/[0.04]">
+                        <div className="space-y-1 pt-1.5 border-t border-white/[0.04]">
                           {findingsList.slice(0, 2).map((f, i) => (
                             <div key={i} className="flex items-center gap-1.5 text-[11px] text-[#FFA776]">
-                              <AlertTriangle className="w-3 h-3 shrink-0" />
+                              <AlertTriangle className="w-3 h-3 shrink-0 text-[#FF6D29]" />
                               <span className="truncate">{f.title}</span>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="text-[11px] text-[#BABABA]/70 flex items-center gap-1.5">
-                          <Clock className="w-3 h-3 text-[#FF6D29]" />
-                          <span>Pending operator decision sign-off</span>
+                        <div className="flex items-center gap-1.5 text-[11px] text-[#BABABA]/70 pt-1 border-t border-white/[0.04]">
+                          <Clock className="w-3 h-3 text-[#BABABA]/40 shrink-0" />
+                          <span className="truncate">
+                            {c.status === "VERIFICATION_COMPLETE"
+                              ? "Verified within tolerance · Awaiting operator sign-off"
+                              : c.status === "REVIEW_REQUIRED"
+                              ? "Discrepancy detected · Investigation required"
+                              : "Documentation intake in progress"}
+                          </span>
                         </div>
                       )}
                     </div>
 
                     {/* Action Footer */}
-                    <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center justify-between pt-1 border-t border-white/[0.04]">
                       <span className="text-[11px] font-mono text-[#BABABA]/50">
                         {new Date(c.createdAt).toLocaleDateString()}
                       </span>
                       <Link
                         to={`/cases/${c.caseId}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-medium hover:shadow-[0_0_16px_rgba(255,109,41,0.4)] transition"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] hover:border-white/20 text-white text-xs font-medium transition cursor-pointer group/btn"
                       >
                         <span>Open Case</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <ArrowRight className="w-3.5 h-3.5 text-[#FF6D29] group-hover/btn:translate-x-0.5 transition-transform" />
                       </Link>
                     </div>
                   </div>
@@ -448,18 +472,18 @@ export const CasesListPage: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search transaction, vendor, material..."
-                className="w-full bg-[#141215]/90 border border-white/10 rounded-xl pl-9 pr-3.5 py-1.5 text-xs text-white placeholder-[#BABABA]/50 focus:outline-none focus:border-[#FF6D29]/60 transition"
+                className="w-full bg-[#110F11]/80 border border-white/[0.08] rounded-xl pl-9 pr-3.5 py-1.5 text-xs text-white placeholder-[#BABABA]/40 focus:outline-none focus:border-white/30 transition"
               />
             </div>
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-md">
+          <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-2xl bg-white/[0.02] border border-white/[0.08] backdrop-blur-md">
             <button
               onClick={() => setActiveTab("ALL")}
               className={`px-3 py-1.5 rounded-xl text-xs font-display transition cursor-pointer flex items-center gap-2 ${
                 activeTab === "ALL"
-                  ? "bg-white/10 text-white font-medium shadow-sm"
+                  ? "bg-white/10 text-white font-medium border border-white/10 shadow-sm"
                   : "text-[#BABABA] hover:text-white"
               }`}
             >
@@ -472,13 +496,13 @@ export const CasesListPage: React.FC = () => {
               onClick={() => setActiveTab("NEEDS_REVIEW")}
               className={`px-3 py-1.5 rounded-xl text-xs font-display transition cursor-pointer flex items-center gap-2 ${
                 activeTab === "NEEDS_REVIEW"
-                  ? "bg-[#FF6D29]/20 text-[#FFA776] border border-[#FF6D29]/40 font-medium"
-                  : "text-[#BABABA] hover:text-[#FFA776]"
+                  ? "bg-white/10 text-white font-medium border border-white/10 shadow-sm"
+                  : "text-[#BABABA] hover:text-white"
               }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#FF6D29]" />
               <span>Needs Review</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-[#FF6D29]/20 text-[#FFA776]">
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-white/10 text-[#BABABA]">
                 {counts.needsReview}
               </span>
             </button>
@@ -486,13 +510,13 @@ export const CasesListPage: React.FC = () => {
               onClick={() => setActiveTab("CLARIFICATION")}
               className={`px-3 py-1.5 rounded-xl text-xs font-display transition cursor-pointer flex items-center gap-2 ${
                 activeTab === "CLARIFICATION"
-                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 font-medium"
-                  : "text-[#BABABA] hover:text-amber-300"
+                  ? "bg-white/10 text-white font-medium border border-white/10 shadow-sm"
+                  : "text-[#BABABA] hover:text-white"
               }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
               <span>Clarification</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-amber-500/20 text-amber-300">
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-white/10 text-[#BABABA]">
                 {counts.clarification}
               </span>
             </button>
@@ -500,13 +524,13 @@ export const CasesListPage: React.FC = () => {
               onClick={() => setActiveTab("APPROVED")}
               className={`px-3 py-1.5 rounded-xl text-xs font-display transition cursor-pointer flex items-center gap-2 ${
                 activeTab === "APPROVED"
-                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-medium"
-                  : "text-[#BABABA] hover:text-emerald-300"
+                  ? "bg-white/10 text-white font-medium border border-white/10 shadow-sm"
+                  : "text-[#BABABA] hover:text-white"
               }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               <span>Approved</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-emerald-500/20 text-emerald-300">
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-white/10 text-[#BABABA]">
                 {counts.approved}
               </span>
             </button>
@@ -514,13 +538,13 @@ export const CasesListPage: React.FC = () => {
               onClick={() => setActiveTab("REJECTED")}
               className={`px-3 py-1.5 rounded-xl text-xs font-display transition cursor-pointer flex items-center gap-2 ${
                 activeTab === "REJECTED"
-                  ? "bg-red-500/20 text-red-300 border border-red-500/40 font-medium"
-                  : "text-[#BABABA] hover:text-red-300"
+                  ? "bg-white/10 text-white font-medium border border-white/10 shadow-sm"
+                  : "text-[#BABABA] hover:text-white"
               }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
               <span>Rejected</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-red-500/20 text-red-300">
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-white/10 text-[#BABABA]">
                 {counts.rejected}
               </span>
             </button>
@@ -528,13 +552,13 @@ export const CasesListPage: React.FC = () => {
 
           {/* Claims Table */}
           {loading ? (
-            <div className="rounded-3xl bg-[#141215]/80 border border-white/10 p-16 text-center backdrop-blur-xl">
+            <div className="rounded-2xl bg-[#110F11]/80 border border-white/[0.08] p-16 text-center backdrop-blur-xl">
               <RefreshCw className="w-6 h-6 text-[#FF6D29] animate-spin mx-auto mb-3" />
               <p className="text-xs font-display text-[#BABABA]">Loading verification claims...</p>
             </div>
           ) : filteredCases.length === 0 ? (
-            <div className="rounded-3xl bg-[#141215]/80 border border-white/10 p-12 text-center backdrop-blur-xl">
-              <div className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/10 mx-auto mb-4 flex items-center justify-center text-[#FF6D29]">
+            <div className="rounded-2xl bg-[#110F11]/80 border border-white/[0.08] p-12 text-center backdrop-blur-xl">
+              <div className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.08] mx-auto mb-4 flex items-center justify-center text-[#FF6D29]">
                 <FileSpreadsheet className="w-5 h-5" />
               </div>
               <h3 className="font-display text-sm font-medium text-white mb-1">
@@ -555,11 +579,11 @@ export const CasesListPage: React.FC = () => {
               )}
             </div>
           ) : (
-            <div className="rounded-3xl bg-[#141215]/85 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.7)] backdrop-blur-xl overflow-hidden">
+            <div className="rounded-2xl bg-[#110F11]/80 border border-white/[0.08] backdrop-blur-xl overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="border-b border-white/10 bg-white/[0.02] text-[#BABABA] font-display text-[11px] uppercase tracking-wider">
+                    <tr className="border-b border-white/[0.08] bg-white/[0.02] text-[#BABABA] font-display text-[11px] uppercase tracking-wider">
                       <th className="py-3.5 px-5 font-medium">Claim</th>
                       <th className="py-3.5 px-5 font-medium">Counterparty</th>
                       <th className="py-3.5 px-5 font-medium">Material</th>
@@ -631,7 +655,7 @@ export const CasesListPage: React.FC = () => {
                               {isVerified && (
                                 <button
                                   onClick={() => setSelectedCaseForPacket(c)}
-                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.09] border border-white/10 hover:border-white/20 text-[11px] font-display text-[#FFA776] transition cursor-pointer"
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/20 text-[11px] font-display text-zinc-300 transition cursor-pointer"
                                   title="View and download Certified Proof Packet PDF"
                                 >
                                   <FileCheck className="w-3 h-3 text-[#FF6D29]" />
@@ -640,7 +664,7 @@ export const CasesListPage: React.FC = () => {
                               )}
                               <Link
                                 to={`/cases/${c.caseId}`}
-                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 text-[11px] font-display text-white transition"
+                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/20 text-[11px] font-display text-white transition"
                               >
                                 <span>{c.resolutionState === "APPROVED" ? "Open" : "Review"}</span>
                                 <ArrowRight className="w-3 h-3 text-[#FF6D29]" />
@@ -654,7 +678,7 @@ export const CasesListPage: React.FC = () => {
                 </table>
               </div>
 
-              <div className="py-3 px-5 border-t border-white/10 bg-black/40 flex items-center justify-between text-[11px] font-display text-[#BABABA]">
+              <div className="py-3 px-5 border-t border-white/[0.08] bg-black/40 flex items-center justify-between text-[11px] font-display text-[#BABABA]">
                 <div>Displaying: {filteredCases.length} of {cases.length} records</div>
                 <div>Tenant: Restricted &bull; Immutable Audit Logs Active</div>
               </div>

@@ -442,7 +442,7 @@ export const PlaygroundPage: React.FC = () => {
               type="button"
               onClick={handleRunFullDemo}
               disabled={isDemoRunning}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium shadow-[0_2px_14px_rgba(255,109,41,0.3)] hover:shadow-[0_2px_20px_rgba(255,109,41,0.45)] transition cursor-pointer disabled:opacity-40"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#FF6D29] hover:bg-[#ff7b3d] text-white text-xs font-display font-medium transition cursor-pointer disabled:opacity-40"
               title="Runs EW-104 verification with real demo images and polls the result"
             >
               <Sparkles className="w-3.5 h-3.5" />
@@ -450,7 +450,7 @@ export const PlaygroundPage: React.FC = () => {
             </button>
             <Link
               to="/docs"
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-display text-white transition"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-display text-white transition"
             >
               <ExternalLink className="w-3.5 h-3.5 text-[#BABABA]" />
               <span>Docs</span>
@@ -475,7 +475,7 @@ export const PlaygroundPage: React.FC = () => {
         )}
 
         {/* API Key Bar */}
-        <div className="p-4 rounded-2xl bg-[#0F0D10] border border-white/10 space-y-2">
+        <div className="p-4 rounded-2xl bg-[#110F11]/80 border border-white/[0.08] space-y-2">
           <div className="flex items-center justify-between text-xs font-display">
             <span className="text-white font-medium flex items-center gap-1.5">
               <Key className="w-3.5 h-3.5 text-[#FF6D29]" />
@@ -493,7 +493,7 @@ export const PlaygroundPage: React.FC = () => {
                 placeholder="Paste your API key (pl_live_...)"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-mono text-white placeholder-[#BABABA]/30 focus:outline-none focus:border-[#FF6D29]/50"
+                className="w-full bg-black/60 border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs font-mono text-white placeholder-[#BABABA]/30 focus:outline-none focus:border-white/30"
               />
               <button
                 type="button"
@@ -508,7 +508,7 @@ export const PlaygroundPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleUseSavedKey}
-                className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-display text-white transition cursor-pointer"
+                className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-display text-white transition cursor-pointer"
               >
                 {savedKeysCount > 0 ? `Manage Keys (${savedKeysCount})` : "Create Key"}
               </button>
@@ -531,7 +531,7 @@ export const PlaygroundPage: React.FC = () => {
                     const randHex = Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
                     setApiKey(`pl_live_${randHex}`);
                   }}
-                  className="px-3 py-2 rounded-xl bg-[#FF6D29]/15 hover:bg-[#FF6D29]/25 border border-[#FF6D29]/30 text-xs font-display text-[#FFA776] transition cursor-pointer whitespace-nowrap"
+                  className="px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-display text-zinc-300 transition cursor-pointer whitespace-nowrap"
                   title="Generate a registered sandbox key directly into the input"
                 >
                   Quick Key
@@ -542,13 +542,13 @@ export const PlaygroundPage: React.FC = () => {
         </div>
 
         {/* Endpoint Switcher */}
-        <div className="flex flex-wrap items-center gap-2 pt-1 pb-1 border-b border-white/5">
+        <div className="flex flex-wrap items-center gap-2 pt-1 pb-1 border-b border-white/[0.06]">
           <button
             type="button"
             onClick={() => setActiveTab("FLOW")}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-display transition cursor-pointer ${
               activeTab === "FLOW"
-                ? "bg-[#FF6D29]/15 text-[#FFA776] border border-[#FF6D29]/30 font-medium"
+                ? "bg-white/10 text-white border border-white/15 font-medium"
                 : "text-[#BABABA] hover:text-white bg-white/[0.02] hover:bg-white/[0.05]"
             }`}
           >
@@ -624,10 +624,10 @@ export const PlaygroundPage: React.FC = () => {
           {/* LEFT COLUMN: REQUEST BUILDER (7 Cols) */}
           <div className="lg:col-span-6 space-y-6">
             {/* Step 1: Create Verification */}
-            <div className="p-5 rounded-2xl bg-[#0F0D10] border border-white/10 space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-white/5">
+            <div className="p-5 rounded-2xl bg-[#110F11]/80 border border-white/[0.08] space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-[#FF6D29]/15 border border-[#FF6D29]/30 text-[#FF6D29] flex items-center justify-center text-[10px] font-mono font-bold">
+                  <div className="w-5 h-5 rounded-full bg-white/[0.06] border border-white/[0.1] text-zinc-300 flex items-center justify-center text-[10px] font-mono font-bold">
                     1
                   </div>
                   <h3 className="text-xs font-display font-semibold text-white uppercase tracking-wider">
@@ -648,7 +648,7 @@ export const PlaygroundPage: React.FC = () => {
                     type="text"
                     value={formValues.transactionId}
                     onChange={(e) => setFormValues({ ...formValues, transactionId: e.target.value })}
-                    className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-[#FF6D29]/40 font-mono"
+                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-white/30 font-mono"
                   />
                 </div>
 
@@ -658,7 +658,7 @@ export const PlaygroundPage: React.FC = () => {
                     type="text"
                     value={formValues.partnerName}
                     onChange={(e) => setFormValues({ ...formValues, partnerName: e.target.value })}
-                    className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-[#FF6D29]/40"
+                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-white/30"
                   />
                 </div>
 
@@ -668,7 +668,7 @@ export const PlaygroundPage: React.FC = () => {
                     type="text"
                     value={formValues.material}
                     onChange={(e) => setFormValues({ ...formValues, material: e.target.value })}
-                    className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-[#FF6D29]/40"
+                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-white/30"
                   />
                 </div>
 
@@ -679,7 +679,7 @@ export const PlaygroundPage: React.FC = () => {
                       type="number"
                       value={formValues.claimedQuantity}
                       onChange={(e) => setFormValues({ ...formValues, claimedQuantity: Number(e.target.value) })}
-                      className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-[#FF6D29]/40 font-mono"
+                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-white/30 font-mono"
                     />
                   </div>
                   <div className="space-y-1">
@@ -688,7 +688,7 @@ export const PlaygroundPage: React.FC = () => {
                       type="text"
                       value={formValues.unit}
                       onChange={(e) => setFormValues({ ...formValues, unit: e.target.value })}
-                      className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-[#FF6D29]/40 font-mono"
+                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-white/30 font-mono"
                     />
                   </div>
                 </div>
@@ -717,7 +717,7 @@ export const PlaygroundPage: React.FC = () => {
                   type="button"
                   onClick={handleCreateVerification}
                   disabled={!apiKey.trim()}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium shadow-[0_2px_12px_rgba(255,109,41,0.25)] hover:shadow-[0_2px_18px_rgba(255,109,41,0.4)] transition cursor-pointer disabled:opacity-40"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF6D29] hover:bg-[#ff7b3d] text-white text-xs font-display font-medium transition cursor-pointer disabled:opacity-40"
                 >
                   <Play className="w-3 h-3 fill-current" />
                   <span>Send Request</span>
@@ -726,10 +726,10 @@ export const PlaygroundPage: React.FC = () => {
             </div>
 
             {/* Step 2: Upload Evidence */}
-            <div className={`p-5 rounded-2xl bg-[#0F0D10] border border-white/10 space-y-4 transition-opacity ${!createdVerificationId ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
-              <div className="flex items-center justify-between pb-3 border-b border-white/5">
+            <div className={`p-5 rounded-2xl bg-[#110F11]/80 border border-white/[0.08] space-y-4 transition-opacity ${!createdVerificationId ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
+              <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-[#FF6D29]/15 border border-[#FF6D29]/30 text-[#FF6D29] flex items-center justify-center text-[10px] font-mono font-bold">
+                  <div className="w-5 h-5 rounded-full bg-white/[0.06] border border-white/[0.1] text-zinc-300 flex items-center justify-center text-[10px] font-mono font-bold">
                     2
                   </div>
                   <h3 className="text-xs font-display font-semibold text-white uppercase tracking-wider">
@@ -748,7 +748,7 @@ export const PlaygroundPage: React.FC = () => {
                     <select
                       value={evidenceType}
                       onChange={(e) => setEvidenceType(e.target.value)}
-                      className="w-full bg-[#161418] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-[#FF6D29]/40"
+                      className="w-full bg-[#161418] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-white/30"
                     >
                       <option value="INVOICE">Commercial Invoice</option>
                       <option value="SCALE_IMAGE">Scale Image</option>
@@ -780,7 +780,7 @@ export const PlaygroundPage: React.FC = () => {
                     type="button"
                     onClick={handleUploadEvidence}
                     disabled={!selectedFile}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs font-display text-white transition cursor-pointer disabled:opacity-40"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-xs font-display text-white transition cursor-pointer disabled:opacity-40"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Upload Evidence</span>
@@ -789,7 +789,7 @@ export const PlaygroundPage: React.FC = () => {
 
                 {/* Uploaded List */}
                 {uploadedEvidence.length > 0 && (
-                  <div className="divide-y divide-white/5 border border-white/10 rounded-xl overflow-hidden bg-black/40">
+                  <div className="divide-y divide-white/5 border border-white/[0.08] rounded-xl overflow-hidden bg-black/40">
                     {uploadedEvidence.map((ev) => (
                       <div key={ev.id} className="p-2.5 flex items-center justify-between text-xs font-display">
                         <div className="flex items-center gap-2">
@@ -805,10 +805,10 @@ export const PlaygroundPage: React.FC = () => {
             </div>
 
             {/* Step 3: Run Verification */}
-            <div className={`p-5 rounded-2xl bg-[#0F0D10] border border-white/10 space-y-4 transition-opacity ${uploadedEvidence.length === 0 ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
-              <div className="flex items-center justify-between pb-3 border-b border-white/5">
+            <div className={`p-5 rounded-2xl bg-[#110F11]/80 border border-white/[0.08] space-y-4 transition-opacity ${uploadedEvidence.length === 0 ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
+              <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-[#FF6D29]/15 border border-[#FF6D29]/30 text-[#FF6D29] flex items-center justify-center text-[10px] font-mono font-bold">
+                  <div className="w-5 h-5 rounded-full bg-white/[0.06] border border-white/[0.1] text-zinc-300 flex items-center justify-center text-[10px] font-mono font-bold">
                     3
                   </div>
                   <h3 className="text-xs font-display font-semibold text-white uppercase tracking-wider">
@@ -827,7 +827,7 @@ export const PlaygroundPage: React.FC = () => {
                   type="button"
                   onClick={handleRunVerification}
                   disabled={running}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium shadow-[0_2px_14px_rgba(255,109,41,0.3)] hover:shadow-[0_2px_20px_rgba(255,109,41,0.45)] transition cursor-pointer disabled:opacity-40"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6D29] hover:bg-[#ff7b3d] text-white text-xs font-display font-medium transition cursor-pointer disabled:opacity-40"
                 >
                   <RotateCw className={`w-3.5 h-3.5 ${running ? "animate-spin" : ""}`} />
                   <span>{running ? "Reviewing..." : "Run Verification"}</span>
@@ -837,7 +837,7 @@ export const PlaygroundPage: React.FC = () => {
 
             {/* Proof Packet Action */}
             {isCompletedResult && (
-              <div className="p-5 rounded-2xl bg-[#0F0D10] border border-[#FF6D29]/30 shadow-[0_0_24px_rgba(255,109,41,0.12)] space-y-3">
+              <div className="p-5 rounded-2xl bg-[#110F11]/80 border border-white/[0.08] space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <FileCheck className="w-4 h-4 text-[#FF6D29]" />
@@ -855,7 +855,7 @@ export const PlaygroundPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleDownloadProofPacket}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] border border-white/10 text-xs font-display font-medium text-white transition cursor-pointer"
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-xs font-display font-medium text-white transition cursor-pointer"
                 >
                   <FileDown className="w-4 h-4 text-[#FF6D29]" />
                   <span>Download Proof Packet PDF</span>
@@ -867,8 +867,8 @@ export const PlaygroundPage: React.FC = () => {
           {/* RIGHT COLUMN: RESPONSE & CURL INSPECTOR (5 Cols) */}
           <div className="lg:col-span-6 space-y-4">
             {/* Toggle response vs cURL */}
-            <div className="flex items-center justify-between pb-2 border-b border-white/5">
-              <div className="flex items-center gap-1.5 bg-white/[0.04] p-0.5 rounded-xl border border-white/5">
+            <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
+              <div className="flex items-center gap-1.5 bg-white/[0.03] p-0.5 rounded-xl border border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setViewFormat("response")}
@@ -903,7 +903,7 @@ export const PlaygroundPage: React.FC = () => {
 
             {/* Human Readable Summary Card if completed */}
             {isCompletedResult && viewFormat === "response" && (
-              <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02] grid grid-cols-4 gap-2 text-center">
+              <div className="p-4 rounded-2xl border border-white/[0.08] bg-[#110F11]/80 grid grid-cols-4 gap-2 text-center">
                 <div>
                   <div className="text-[10px] font-mono text-[#BABABA] uppercase">Verdict</div>
                   <div className="text-xs font-display font-bold text-emerald-400">
@@ -941,7 +941,7 @@ export const PlaygroundPage: React.FC = () => {
                   requestId={latestRequestId}
                 />
               ) : (
-                <div className="p-12 text-center rounded-xl border border-dashed border-white/10 bg-white/[0.01] text-xs font-display text-[#BABABA] space-y-2">
+                <div className="p-12 text-center rounded-2xl border border-dashed border-white/10 bg-[#110F11]/40 text-xs font-display text-[#BABABA] space-y-2">
                   <Terminal className="w-8 h-8 text-[#BABABA]/30 mx-auto" />
                   <p>Send a request or run the 1-Click Demo to inspect real API responses.</p>
                 </div>

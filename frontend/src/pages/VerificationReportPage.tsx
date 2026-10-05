@@ -173,29 +173,29 @@ export const VerificationReportPage: React.FC = () => {
 
       <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 pt-2 pb-24 flex-1 space-y-8 font-display">
         {isDemoParam && !isSimulating && (
-          <div className="rounded-2xl border border-[#FF6D29]/30 bg-gradient-to-r from-[#FF6D29]/10 via-[#181014] to-[#120F12] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[0_4px_24px_rgba(255,109,41,0.15)]">
+          <div className="rounded-2xl border border-white/[0.08] bg-[#110F11]/80 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#FF6D29] animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-[#FF6D29]" />
                 <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#FFA776]">
                   Interactive Demo Stage Complete
                 </span>
               </div>
-              <p className="text-xs text-zinc-300 font-display">
+              <p className="text-xs text-[#BABABA] font-display">
                 The transaction verified with 0.79% variance within configured tolerance. Now test what happens when evidence conflicts.
               </p>
             </div>
             <button
               type="button"
               onClick={() => setShowSimModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium shadow-[0_2px_14px_rgba(255,109,41,0.35)] hover:shadow-[0_2px_22px_rgba(255,109,41,0.55)] transition-all shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF6D29] hover:bg-[#ff7b3d] text-white text-xs font-display font-medium transition-all shrink-0 cursor-pointer"
             >
               <span>See how Proofline handles conflicting evidence &rarr;</span>
             </button>
           </div>
         )}
         {/* Navigation Breadcrumb */}
-        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+        <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
           <Link
             to={`/cases/${caseId}`}
             className="inline-flex items-center gap-2 text-xs font-display text-[#BABABA] hover:text-white transition-colors"
@@ -214,12 +214,12 @@ export const VerificationReportPage: React.FC = () => {
           ref={heroRef}
           className={`rounded-3xl border p-8 sm:p-12 shadow-[0_24px_60px_rgba(0,0,0,0.85)] backdrop-blur-xl relative overflow-hidden transition-all duration-300 ${
             isSimulating
-              ? "bg-[#181014]/95 border-[#FF6D29]/50 shadow-[0_0_50px_rgba(255,109,41,0.2)]"
-              : "bg-[#141215]/90 border-white/10"
+              ? "bg-[#181014]/95 border-[#FF6D29]/40"
+              : "bg-[#110F11]/90 border-white/[0.08]"
           }`}
         >
-          {/* Subtle amber / orange ambient top corner bloom */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-[#FF6D29]/15 rounded-full blur-[90px] pointer-events-none" />
+          {/* Subtle amber / orange ambient top corner vignette */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-[#FF6D29]/[0.06] rounded-full blur-[90px] pointer-events-none" />
 
           {/* Top Tag & Badges */}
             {/* Human Resolution Status Badge */}
@@ -283,7 +283,7 @@ export const VerificationReportPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPacketModal(true)}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium shadow-[0_2px_14px_rgba(255,109,41,0.3)] hover:shadow-[0_2px_20px_rgba(255,109,41,0.45)] transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FF6D29] hover:bg-[#ff7b3d] text-white text-xs font-display font-medium transition-all cursor-pointer"
               >
                 <FileCheck className="w-3.5 h-3.5" />
                 <span>Export Proof Packet</span>
@@ -293,7 +293,7 @@ export const VerificationReportPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowGraphModal(true)}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#161316] hover:bg-[#1f1a1f] border border-[#FF6D29]/40 hover:border-[#FF6D29]/70 text-xs font-display font-medium text-[#FFA776] hover:text-white transition-all shadow-[0_2px_12px_rgba(255,109,41,0.15)] cursor-pointer"
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/20 text-xs font-display font-medium text-white transition-all cursor-pointer"
               >
                 <Network className="w-3.5 h-3.5 text-[#FF6D29]" />
                 <span>View Proof Graph</span>
@@ -303,7 +303,7 @@ export const VerificationReportPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowSimModal(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 text-xs font-display font-medium text-[#BABABA] hover:text-white transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/20 text-xs font-display font-medium text-[#BABABA] hover:text-white transition cursor-pointer"
               >
                 <FlaskConical className="w-3.5 h-3.5 text-[#FF6D29]" />
                 <span>{isSimulating ? "Switch Scenario" : "Simulate discrepancy"}</span>

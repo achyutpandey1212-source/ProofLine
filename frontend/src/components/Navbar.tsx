@@ -86,7 +86,7 @@ export const Navbar: React.FC = () => {
           ) : (
             <Link
               to="/login"
-              className="px-4 py-1.5 rounded-full bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium shadow-[0_0_18px_rgba(255,109,41,0.4)] hover:shadow-[0_0_24px_rgba(255,109,41,0.6)] transition-all"
+              className="px-4 py-1.5 rounded-full bg-[#FF6D29] hover:bg-[#ff7b3d] text-white text-xs font-display font-medium transition-all"
             >
               Sign In
             </Link>
