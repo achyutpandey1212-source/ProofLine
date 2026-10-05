@@ -1,13 +1,13 @@
 import React from "react";
 import { useInteractiveDemo } from "./InteractiveDemoDriver";
-import { X } from "lucide-react";
+import { X, Check } from "lucide-react";
 
 export const InteractiveDemoHUD: React.FC = () => {
   const { demoState, cancelInteractiveDemo } = useInteractiveDemo();
 
   if (!demoState.isActive) return null;
 
-  const getStepIndex = () => {
+  const getStepNumber = () => {
     switch (demoState.step) {
       case "NAVIGATING_NEW_CASE":
       case "TYPING_FORM":
@@ -24,72 +24,96 @@ export const InteractiveDemoHUD: React.FC = () => {
     }
   };
 
-  const currentStepNum = getStepIndex();
+  const currentStep = getStepNumber();
+
+  const steps = [
+    { num: 1, label: "Case Intake" },
+    { num: 2, label: "Evidence" },
+    { num: 3, label: "Verification" },
+    { num: 4, label: "Proof" },
+  ];
 
   return (
     <aside
-      aria-label="Interactive Demo Guide"
-      className="fixed bottom-6 right-6 z-50 max-w-sm w-full select-none pointer-events-auto"
+      aria-label="Interactive Demo Controller"
+      className="fixed bottom-5 right-5 z-50 max-w-xs sm:max-w-sm w-full select-none pointer-events-auto transition-all"
     >
-      <div className="rounded-2xl bg-[#0F0D10]/95 border border-white/10 p-4 shadow-[0_20px_45px_rgba(0,0,0,0.85)] backdrop-blur-xl text-white">
-        {/* Header: Restrained Obsidian aesthetic */}
-        <div className="flex items-center justify-between pb-3 border-b border-white/[0.06] mb-3">
+      <div className="rounded-2xl bg-[#0F0D10]/95 border border-white/10 p-4 shadow-[0_16px_36px_rgba(0,0,0,0.85)] backdrop-blur-md text-white font-display">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-2.5 border-b border-white/[0.08] mb-3">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[#FF6D29]" />
             <span className="text-[10px] font-mono uppercase tracking-widest text-[#BABABA]">
-              Interactive Demo &bull; Step {currentStepNum}/4
+              Interactive Demo
             </span>
           </div>
 
           <button
             type="button"
             onClick={cancelInteractiveDemo}
-            className="text-[10px] font-mono text-[#BABABA]/70 hover:text-white px-2 py-0.5 rounded-lg border border-transparent hover:border-white/10 hover:bg-white/[0.04] transition cursor-pointer flex items-center gap-1"
-            title="Stop interactive demo"
+            className="text-[10px] font-mono text-[#BABABA]/70 hover:text-white px-2 py-0.5 rounded-md hover:bg-white/[0.06] transition cursor-pointer flex items-center gap-1"
+            title="Exit demo walkthrough"
           >
             <span>Exit</span>
             <X className="w-3 h-3" />
           </button>
         </div>
 
-        {/* Primary Message */}
-        <div className="space-y-1 font-display">
-          <div className="text-xs font-medium text-white leading-snug">
+        {/* 4 Steps Checklist */}
+        <div className="grid grid-cols-4 gap-1.5 mb-3">
+          {steps.map((s) => {
+            const isDone = currentStep > s.num;
+            const isCurrent = currentStep === s.num;
+
+            return (
+              <div
+                key={s.num}
+                className={`py-1.5 px-2 rounded-lg text-center border transition-all ${
+                  isCurrent
+                    ? "bg-[#FF6D29]/15 border-[#FF6D29]/40 text-[#FFA776]"
+                    : isDone
+                    ? "bg-white/[0.03] border-white/[0.06] text-[#BABABA]"
+                    : "bg-transparent border-transparent text-[#BABABA]/40"
+                }`}
+              >
+                <div className="flex items-center justify-center gap-1">
+                  {isDone ? (
+                    <Check className="w-2.5 h-2.5 text-emerald-400" />
+                  ) : (
+                    <span className="text-[9px] font-mono opacity-70">
+                      0{s.num}
+                    </span>
+                  )}
+                </div>
+                <div className="text-[10px] font-medium truncate mt-0.5">
+                  {s.label}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Current Dynamic Action Message */}
+        <div className="space-y-1 bg-black/40 rounded-xl p-2.5 border border-white/[0.06]">
+          <div className="text-xs font-medium text-white leading-tight">
             {demoState.currentMessage}
           </div>
           {demoState.subMessage && (
-            <p className="text-[11px] text-[#BABABA] leading-relaxed">
+            <p className="text-[11px] text-[#BABABA] leading-snug">
               {demoState.subMessage}
             </p>
           )}
         </div>
 
-        {/* Minimal Progress Line & Breadcrumbs */}
-        <div className="mt-3.5 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[10px] font-mono text-[#BABABA]">
-          <div className="flex items-center gap-2">
-            <span className={currentStepNum === 1 ? "text-[#FFA776] font-medium" : "text-[#BABABA]/50"}>
-              Intake
-            </span>
-            <span className="text-white/20">/</span>
-            <span className={currentStepNum === 2 ? "text-[#FFA776] font-medium" : "text-[#BABABA]/50"}>
-              Evidence
-            </span>
-            <span className="text-white/20">/</span>
-            <span className={currentStepNum === 3 ? "text-[#FFA776] font-medium" : "text-[#BABABA]/50"}>
-              Verify
-            </span>
-            <span className="text-white/20">/</span>
-            <span className={currentStepNum === 4 ? "text-emerald-400 font-medium" : "text-[#BABABA]/50"}>
-              Audit
+        {/* Evidence Counter Footer */}
+        {demoState.step === "UPLOADING_EVIDENCE" && (
+          <div className="mt-2.5 pt-2 border-t border-white/[0.06] flex items-center justify-between text-[10px] font-mono text-[#BABABA]">
+            <span>Evidence Intake</span>
+            <span className="text-[#FFA776]">
+              {demoState.uploadedCount} / {demoState.totalUploads} registered
             </span>
           </div>
-
-          {demoState.step === "UPLOADING_EVIDENCE" && demoState.uploadedCount > 0 && (
-            <span className="text-[#BABABA] font-mono">
-              {demoState.uploadedCount}/{demoState.totalUploads}
-            </span>
-          )}
-        </div>
+        )}
       </div>
     </aside>
   );

@@ -33,12 +33,13 @@ import { SimulationBanner } from "../components/SimulationBanner";
 import { SimulationModal } from "../components/simulation/SimulationModal";
 import { ProofPacketModal } from "../components/proofPacket/ProofPacketModal";
 import { useSimulation } from "../context/SimulationContext";
+import { useInteractiveDemo } from "../demo/InteractiveDemoDriver";
 
 const EVIDENCE_TYPE_OPTIONS = [
-  { value: "SCALE_IMAGE", label: "Scale Image (Display Weighing)" },
   { value: "INVOICE", label: "Commercial Invoice" },
+  { value: "SCALE_IMAGE", label: "Weighbridge Scale Slip" },
+  { value: "CERTIFICATE", label: "Certificate of Analysis" },
   { value: "RECEIPT", label: "Weighbridge / Cash Receipt" },
-  { value: "CERTIFICATE", label: "Recycling Certificate" },
   { value: "MATERIAL_IMAGE", label: "Material Photo" },
   { value: "DOCUMENT", label: "Supporting Document" },
   { value: "VIDEO", label: "Video Evidence" },
@@ -47,6 +48,7 @@ const EVIDENCE_TYPE_OPTIONS = [
 
 export const CaseDetailPage: React.FC = () => {
   const { caseId } = useParams<{ caseId: string }>();
+  const { demoState } = useInteractiveDemo();
 
   const { isSimulating, simulationResult } = useSimulation();
   const [showSimModal, setShowSimModal] = useState(false);
@@ -73,6 +75,27 @@ export const CaseDetailPage: React.FC = () => {
     if (caseId) {
       loadInitialData();
     }
+  }, [caseId]);
+
+  // Synchronize upload classification during interactive demo
+  useEffect(() => {
+    if (demoState.isActive && demoState.currentEvidenceType) {
+      setSelectedType(demoState.currentEvidenceType);
+    }
+  }, [demoState.isActive, demoState.currentEvidenceType]);
+
+  // Dynamically receive evidence added events during interactive demo
+  useEffect(() => {
+    const handleEvidenceAdded = () => {
+      if (caseId) {
+        EvidenceService.listEvidence(caseId)
+          .then((data) => setEvidenceList(data))
+          .catch((err) => console.error("Failed to refresh evidence:", err));
+      }
+    };
+
+    window.addEventListener("proofline:evidence-added", handleEvidenceAdded);
+    return () => window.removeEventListener("proofline:evidence-added", handleEvidenceAdded);
   }, [caseId]);
 
   const loadInitialData = async () => {
@@ -272,7 +295,11 @@ export const CaseDetailPage: React.FC = () => {
             <button
               onClick={handleStartVerification}
               disabled={evidenceList.length === 0}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6D29] hover:bg-[#ff7b3d] text-white disabled:opacity-40 text-xs font-display font-medium transition-all cursor-pointer"
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6D29] hover:bg-[#ff7b3d] text-white disabled:opacity-40 text-xs font-display font-medium transition-all cursor-pointer ${
+                demoState.highlightVerifyButton
+                  ? "ring-2 ring-white ring-offset-2 ring-offset-[#141215] shadow-[0_0_24px_rgba(255,109,41,0.85)] scale-[1.03]"
+                  : ""
+              }`}
             >
               <Play className="w-3.5 h-3.5 fill-current" />
               <span>{report ? "Re-Run Verification" : "Run Verification Engine"}</span>
@@ -539,20 +566,44 @@ export const CaseDetailPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/[0.06]">
-                    {evidenceList.map((ev) => (
-                      <tr key={ev._id} className="hover:bg-white/[0.02] transition-colors">
-                        <td className="px-4 py-3 font-mono font-medium text-white">
-                          {ev.evidenceId}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="border border-white/10 bg-white/[0.04] px-2 py-0.5 rounded-full text-[11px] text-[#BABABA]">
-                            {ev.type}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 flex items-center gap-2">
-                          <FileText className="w-3.5 h-3.5 text-[#FF6D29] shrink-0" />
-                          <span className="truncate max-w-xs">{ev.file.name}</span>
-                        </td>
+                    {evidenceList.map((ev) => {
+                      const isCurrentDemoItem =
+                        demoState.isActive && demoState.currentEvidenceName === ev.file.name;
+                      const friendlyType =
+                        ev.type === "INVOICE"
+                          ? "Commercial Invoice"
+                          : ev.type === "SCALE_IMAGE"
+                          ? "Weighbridge Scale Slip"
+                          : ev.type === "CERTIFICATE"
+                          ? "Certificate of Analysis"
+                          : ev.type.replace(/_/g, " ");
+
+                      return (
+                        <tr
+                          key={ev._id}
+                          className={`transition-all duration-300 ${
+                            isCurrentDemoItem
+                              ? "bg-[#FF6D29]/10 border-l-2 border-l-[#FF6D29]"
+                              : "hover:bg-white/[0.02]"
+                          }`}
+                        >
+                          <td className="px-4 py-3 font-mono font-medium text-white">
+                            {ev.evidenceId}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="border border-white/10 bg-white/[0.04] px-2.5 py-0.5 rounded-full text-[11px] text-[#BABABA]">
+                              {friendlyType}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 flex items-center gap-2">
+                            <FileText className="w-3.5 h-3.5 text-[#FF6D29] shrink-0" />
+                            <span className="truncate max-w-xs">{ev.file.name}</span>
+                            {isCurrentDemoItem && (
+                              <span className="text-[10px] font-mono uppercase tracking-wider text-[#FFA776] bg-[#FF6D29]/20 px-2 py-0.5 rounded-full animate-pulse shrink-0">
+                                Just Attached
+                              </span>
+                            )}
+                          </td>
                         <td className="px-4 py-3 text-center font-mono">
                           <span
                             className={`px-2 py-0.5 rounded-full text-[11px] border ${
@@ -595,7 +646,8 @@ export const CaseDetailPage: React.FC = () => {
                           </a>
                         </td>
                       </tr>
-                    ))}
+                    );
+                  })}
                   </tbody>
                 </table>
               </div>

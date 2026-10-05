@@ -5,7 +5,7 @@ import { DemoManager } from "./demoRunner";
 import { CaseService } from "../services/case.service";
 import { EvidenceService } from "../services/evidence.service";
 import { VerificationClientService } from "../services/verification.service";
-import { CaseItem } from "../types";
+import { CaseItem, EvidenceType } from "../types";
 
 export type DemoStep =
   | "IDLE"
@@ -16,12 +16,27 @@ export type DemoStep =
   | "RUNNING_VERIFICATION"
   | "LANDING_REPORT";
 
-interface DemoState {
+export interface DemoFormData {
+  transactionId: string;
+  partnerName: string;
+  material: string;
+  claimedQuantity: string;
+  unit: string;
+  organization: string;
+  notes: string;
+}
+
+export interface DemoState {
   isActive: boolean;
   step: DemoStep;
   currentMessage: string;
   subMessage?: string;
-  fieldFocus?: string;
+  activeField?: keyof DemoFormData;
+  formData: DemoFormData;
+  highlightSubmitButton: boolean;
+  highlightVerifyButton: boolean;
+  currentEvidenceType?: EvidenceType;
+  currentEvidenceName?: string;
   uploadedCount: number;
   totalUploads: number;
   caseItem: CaseItem | null;
@@ -33,15 +48,30 @@ interface DemoContextValue {
   cancelInteractiveDemo: () => void;
 }
 
+const initialFormData: DemoFormData = {
+  transactionId: "",
+  partnerName: "",
+  material: "",
+  claimedQuantity: "",
+  unit: "kg",
+  organization: "",
+  notes: "",
+};
+
+const initialDemoState: DemoState = {
+  isActive: false,
+  step: "IDLE",
+  currentMessage: "",
+  formData: initialFormData,
+  highlightSubmitButton: false,
+  highlightVerifyButton: false,
+  uploadedCount: 0,
+  totalUploads: 5,
+  caseItem: null,
+};
+
 const DemoContext = createContext<DemoContextValue>({
-  demoState: {
-    isActive: false,
-    step: "IDLE",
-    currentMessage: "",
-    uploadedCount: 0,
-    totalUploads: 5,
-    caseItem: null,
-  },
+  demoState: initialDemoState,
   startInteractiveDemo: async () => {},
   cancelInteractiveDemo: () => {},
 });
@@ -50,15 +80,7 @@ export const useInteractiveDemo = () => useContext(DemoContext);
 
 export const InteractiveDemoProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
-  const [demoState, setDemoState] = useState<DemoState>({
-    isActive: false,
-    step: "IDLE",
-    currentMessage: "",
-    uploadedCount: 0,
-    totalUploads: 5,
-    caseItem: null,
-  });
-
+  const [demoState, setDemoState] = useState<DemoState>(initialDemoState);
   const abortRef = useRef(false);
 
   const sleep = (ms: number) =>
@@ -66,74 +88,190 @@ export const InteractiveDemoProvider: React.FC<{ children: React.ReactNode }> = 
 
   const cancelInteractiveDemo = useCallback(() => {
     abortRef.current = true;
-    setDemoState({
-      isActive: false,
-      step: "IDLE",
-      currentMessage: "",
-      uploadedCount: 0,
-      totalUploads: 5,
-      caseItem: null,
-    });
+    setDemoState(initialDemoState);
   }, []);
 
   const startInteractiveDemo = useCallback(async () => {
     abortRef.current = false;
 
     try {
-      // Step 1: Initialize & Navigate to /cases/new
+      // -------------------------------------------------------------
+      // ACT 1: CASE INTAKE
+      // -------------------------------------------------------------
       setDemoState({
+        ...initialDemoState,
         isActive: true,
         step: "NAVIGATING_NEW_CASE",
-        currentMessage: "Navigating to Case Intake workspace...",
+        currentMessage: "Navigating to Case Intake...",
         subMessage: "Establishing baseline transaction declaration",
-        uploadedCount: 0,
         totalUploads: OFFICIAL_DEMO_SCENARIO.evidence.length,
-        caseItem: null,
       });
 
       navigate("/cases/new");
-      await sleep(2500);
+      await sleep(1300);
       if (abortRef.current) return;
 
-      // Step 2: Form typing simulation
-      const formFields = [
-        { name: "Transaction ID", value: OFFICIAL_DEMO_SCENARIO.caseData.transactionId },
-        { name: "Partner Name", value: OFFICIAL_DEMO_SCENARIO.caseData.partnerName },
-        { name: "Material Specification", value: OFFICIAL_DEMO_SCENARIO.caseData.material },
-        { name: "Claimed Weight", value: "560 kg" },
-      ];
+      // Progressive typing simulation
+      const currentForm: DemoFormData = {
+        transactionId: "",
+        partnerName: "",
+        material: "",
+        claimedQuantity: "",
+        unit: "kg",
+        organization: "",
+        notes: "",
+      };
 
-      for (const field of formFields) {
+      const scenario = OFFICIAL_DEMO_SCENARIO;
+
+      // Field 1: Transaction ID: EW-104
+      setDemoState((prev) => ({
+        ...prev,
+        step: "TYPING_FORM",
+        activeField: "transactionId",
+        currentMessage: "Declaring Transaction ID: EW-104",
+        subMessage: "Entering baseline transaction identifier",
+      }));
+      await sleep(350);
+
+      for (const char of scenario.caseData.transactionId) {
         if (abortRef.current) return;
+        currentForm.transactionId += char;
         setDemoState((prev) => ({
           ...prev,
-          step: "TYPING_FORM",
-          fieldFocus: field.name,
-          currentMessage: `Declaring ${field.name}: ${field.value}`,
-          subMessage: "Entering baseline transaction attributes",
+          formData: { ...currentForm },
         }));
-        await sleep(950);
+        await sleep(140);
       }
+      await sleep(400);
 
-      // Step 3: Submitting Case to Real Backend with isDemo: true
+      // Field 2: Partner / Seller: NexCycle Polymers Private Limited
+      setDemoState((prev) => ({
+        ...prev,
+        activeField: "partnerName",
+        currentMessage: "Declaring Counterparty: NexCycle Polymers Private Limited",
+        subMessage: "Bhiwandi, Maharashtra — Authorized Recycling Facility",
+      }));
+      await sleep(300);
+
+      for (const char of scenario.caseData.partnerName) {
+        if (abortRef.current) return;
+        currentForm.partnerName += char;
+        setDemoState((prev) => ({
+          ...prev,
+          formData: { ...currentForm },
+        }));
+        await sleep(45);
+      }
+      await sleep(400);
+
+      // Field 3: Material: Washed PET Flakes — Clear Grade
+      setDemoState((prev) => ({
+        ...prev,
+        activeField: "material",
+        currentMessage: "Declaring Material: Washed PET Flakes — Clear Grade",
+        subMessage: "Industrial post-consumer recycled specification",
+      }));
+      await sleep(300);
+
+      for (const char of scenario.caseData.material) {
+        if (abortRef.current) return;
+        currentForm.material += char;
+        setDemoState((prev) => ({
+          ...prev,
+          formData: { ...currentForm },
+        }));
+        await sleep(45);
+      }
+      await sleep(400);
+
+      // Field 4: Claimed Quantity: 560
+      setDemoState((prev) => ({
+        ...prev,
+        activeField: "claimedQuantity",
+        currentMessage: "Declaring Claimed Quantity: 560.00 kg",
+        subMessage: "Invoiced consignment weight baseline",
+      }));
+      await sleep(300);
+
+      for (const char of String(scenario.caseData.claimedQuantity)) {
+        if (abortRef.current) return;
+        currentForm.claimedQuantity += char;
+        setDemoState((prev) => ({
+          ...prev,
+          formData: { ...currentForm },
+        }));
+        await sleep(120);
+      }
+      currentForm.unit = "kg";
+      setDemoState((prev) => ({
+        ...prev,
+        formData: { ...currentForm },
+      }));
+      await sleep(400);
+
+      // Field 5: Organization (Buyer)
+      setDemoState((prev) => ({
+        ...prev,
+        activeField: "organization",
+        currentMessage: "Declaring Buyer: Ardent Packaging Industries Private Limited",
+        subMessage: "Taloja, Navi Mumbai, Maharashtra",
+      }));
+      await sleep(300);
+
+      for (const char of scenario.caseData.organization) {
+        if (abortRef.current) return;
+        currentForm.organization += char;
+        setDemoState((prev) => ({
+          ...prev,
+          formData: { ...currentForm },
+        }));
+        await sleep(35);
+      }
+      await sleep(350);
+
+      // Field 6: Logistics Context & Notes
+      setDemoState((prev) => ({
+        ...prev,
+        activeField: "notes",
+        currentMessage: "Declaring Logistics Context...",
+        subMessage: "Vehicle MH 04 KT 7821 • Batch NXP-PET-261004-B17 • Invoice NXP/26-27/0184",
+      }));
+      await sleep(300);
+
+      currentForm.notes = scenario.caseData.notes;
+      setDemoState((prev) => ({
+        ...prev,
+        formData: { ...currentForm },
+      }));
+      await sleep(700);
+
+      // Highlight Submit Button
+      setDemoState((prev) => ({
+        ...prev,
+        activeField: undefined,
+        highlightSubmitButton: true,
+        currentMessage: "Transaction declaration complete. Proceeding to intake workspace...",
+        subMessage: "Registering baseline case in Proofline engine",
+      }));
+      await sleep(950);
+      if (abortRef.current) return;
+
+      // Real backend case creation with isDemo: true
       setDemoState((prev) => ({
         ...prev,
         step: "SUBMITTING_CASE",
-        fieldFocus: undefined,
-        currentMessage: "Registering official verification case in database...",
-        subMessage: "Purging prior test cases & establishing isolated sandbox instance",
+        highlightSubmitButton: false,
       }));
-      await sleep(1200);
-      if (abortRef.current) return;
 
       const created = await CaseService.createCase({
-        transactionId: OFFICIAL_DEMO_SCENARIO.caseData.transactionId,
-        partnerName: OFFICIAL_DEMO_SCENARIO.caseData.partnerName,
-        material: OFFICIAL_DEMO_SCENARIO.caseData.material,
-        claimedQuantity: OFFICIAL_DEMO_SCENARIO.caseData.claimedQuantity,
-        unit: OFFICIAL_DEMO_SCENARIO.caseData.unit,
-        organization: OFFICIAL_DEMO_SCENARIO.caseData.organization,
-        notes: OFFICIAL_DEMO_SCENARIO.caseData.notes,
+        transactionId: scenario.caseData.transactionId,
+        partnerName: scenario.caseData.partnerName,
+        material: scenario.caseData.material,
+        claimedQuantity: scenario.caseData.claimedQuantity,
+        unit: scenario.caseData.unit,
+        organization: scenario.caseData.organization,
+        notes: scenario.caseData.notes,
         isDemo: true,
       });
 
@@ -142,76 +280,124 @@ export const InteractiveDemoProvider: React.FC<{ children: React.ReactNode }> = 
       setDemoState((prev) => ({
         ...prev,
         caseItem: created,
-        currentMessage: `Case ${created.caseId} created. Navigating to evidence intake...`,
+        currentMessage: `Case ${created.caseId} registered. Opening Evidence Workspace...`,
+        subMessage: "Preparing sequential evidentiary document intake",
       }));
 
       navigate(`/cases/${created.caseId}`);
-      await sleep(1800);
+      await sleep(1300);
       if (abortRef.current) return;
 
-      // Step 4: Uploading real synthetic evidence files sequentially
-      const totalEvidence = OFFICIAL_DEMO_SCENARIO.evidence.length;
+      // -------------------------------------------------------------
+      // ACT 2: SEQUENTIAL EVIDENCE INTAKE
+      // -------------------------------------------------------------
+      const totalEvidence = scenario.evidence.length;
       for (let i = 0; i < totalEvidence; i++) {
         if (abortRef.current) return;
-        const item = OFFICIAL_DEMO_SCENARIO.evidence[i];
+        const item = scenario.evidence[i];
+
+        const itemFriendlyTitle =
+          item.type === "INVOICE"
+            ? "Commercial Tax Invoice (560.00 kg)"
+            : item.type === "CERTIFICATE"
+            ? "Certificate of Analysis (Purity 99.2%)"
+            : `Weighbridge Ticket ${i} (${item.expectedWeight?.toFixed(2)} kg)`;
 
         setDemoState((prev) => ({
           ...prev,
           step: "UPLOADING_EVIDENCE",
-          uploadedCount: i + 1,
+          currentEvidenceType: item.type,
+          currentEvidenceName: item.fileName,
+          uploadedCount: i,
           totalUploads: totalEvidence,
-          currentMessage: `Ingesting evidence [${i + 1}/${totalEvidence}]: ${item.fileName}`,
-          subMessage: `${item.type.replace(/_/g, " ")} &bull; ${item.description}`,
+          currentMessage: `Ingesting Document [${i + 1}/${totalEvidence}]: ${itemFriendlyTitle}`,
+          subMessage: item.description,
         }));
 
+        await sleep(550);
+        if (abortRef.current) return;
+
+        // Load and upload actual file from public/demo/
         const file = await DemoManager.loadSyntheticFile(item);
         await EvidenceService.uploadEvidence(created.caseId, file, item.type);
-        await sleep(1400);
+
+        // Notify UI to immediately render newly uploaded document row
+        window.dispatchEvent(
+          new CustomEvent("proofline:evidence-added", {
+            detail: { fileName: item.fileName, type: item.type },
+          })
+        );
+
+        setDemoState((prev) => ({
+          ...prev,
+          uploadedCount: i + 1,
+          currentMessage: `Registered [${i + 1}/${totalEvidence}]: ${item.fileName}`,
+          subMessage: `${item.type.replace(/_/g, " ")} • Document Fingerprinted & Indexed`,
+        }));
+
+        // Give viewer time to see the document inside the evidence table
+        await sleep(1250);
       }
 
       if (abortRef.current) return;
 
-      // Step 5: Trigger real verification pipeline
+      // -------------------------------------------------------------
+      // ACT 3: TRIGGER REAL VERIFICATION PIPELINE
+      // -------------------------------------------------------------
+      await sleep(800);
+      setDemoState((prev) => ({
+        ...prev,
+        highlightVerifyButton: true,
+        currentMessage: "All 5 evidentiary records registered. Initiating Verification...",
+        subMessage: "Executing multimodal extraction, mass balance reconciliation & integrity checks",
+      }));
+
+      await sleep(1100);
+      if (abortRef.current) return;
+
       setDemoState((prev) => ({
         ...prev,
         step: "RUNNING_VERIFICATION",
-        currentMessage: "Initiating deterministic verification pipeline...",
-        subMessage: "Extracting facts, validating weights & reconciling mass-balance",
+        highlightVerifyButton: false,
       }));
 
-      await sleep(1500);
       navigate(`/cases/${created.caseId}/verify`);
 
-      // Let VerificationFlowPage execute with live HUD polling
+      // Monitor verification status as VerificationFlowPage runs
       let isVerified = false;
       const startTime = Date.now();
-      while (!isVerified && Date.now() - startTime < 35000) {
+      while (!isVerified && Date.now() - startTime < 45000) {
         if (abortRef.current) return;
-        await sleep(1500);
+        await sleep(1400);
         try {
           const statusRes = await VerificationClientService.getStatus(created.caseId);
           if (statusRes.status === "COMPLETED") {
             isVerified = true;
           }
         } catch {
-          // ignore transient errors during polling
+          // Poll continuation
         }
       }
 
       if (abortRef.current) return;
 
-      // Step 6: Organic landing on report with demo banner active
+      // -------------------------------------------------------------
+      // ACT 4: LAND ON REAL AUDIT REPORT & LET IT BREATHE
+      // -------------------------------------------------------------
       setDemoState((prev) => ({
         ...prev,
         step: "LANDING_REPORT",
-        currentMessage: "Verification complete. Rendering cryptographic audit report...",
-        subMessage: "Claimed: 560 kg vs Measured: 555.6 kg (0.79% variance)",
+        currentMessage: "Verification Complete — Claim Verified (Low Risk)",
+        subMessage: "Claimed: 560.00 kg • Measured: 555.60 kg • Variance: 0.79%",
       }));
 
-      await sleep(2000);
+      await sleep(1800);
       navigate(`/cases/${created.caseId}/verification?demo=true`);
 
-      await sleep(1500);
+      // Let report breathe for 4.5 seconds so viewer absorbs the complete verified result
+      await sleep(4500);
+
+      // Return demo state to peaceful idle, ready for optional second act
       setDemoState((prev) => ({
         ...prev,
         isActive: false,
@@ -219,12 +405,7 @@ export const InteractiveDemoProvider: React.FC<{ children: React.ReactNode }> = 
       }));
     } catch (err) {
       console.error("Interactive demo error:", err);
-      setDemoState((prev) => ({
-        ...prev,
-        isActive: false,
-        step: "IDLE",
-        currentMessage: "Interactive demo stopped due to an error.",
-      }));
+      setDemoState(initialDemoState);
     }
   }, [navigate]);
 

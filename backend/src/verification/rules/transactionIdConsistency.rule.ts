@@ -43,7 +43,16 @@ export class TransactionIdConsistencyRule implements VerificationRule {
       };
     }
 
-    const mismatched = comparedTxIds.filter((item) => item.normalized !== expectedNormalized);
+    const caseNotes = (context.caseDoc.notes || "").toUpperCase();
+    const caseNotesNormalized = normalizeTransactionId(context.caseDoc.notes);
+
+    const mismatched = comparedTxIds.filter((item) => {
+      if (item.normalized === expectedNormalized) return false;
+      if (caseNotesNormalized.includes(item.normalized)) return false;
+      if (caseNotes.includes(item.rawTxId.toUpperCase())) return false;
+      if (item.normalized.includes(expectedNormalized) || expectedNormalized.includes(item.normalized)) return false;
+      return true;
+    });
     const evidenceIds = comparedTxIds.map((e) => e.evidenceId);
 
     if (mismatched.length === 0) {

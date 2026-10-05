@@ -23,11 +23,12 @@ CRITICAL RULES:
 export const getExtractionPromptForType = (evidenceType: EvidenceType): string => {
   switch (evidenceType) {
     case "SCALE_IMAGE":
-      return `Analyze this weighing scale photograph and extract the visible digital display readings.
+      return `Analyze this weighing scale photograph or weighbridge ticket/slip and extract the visible scale or net weight readings.
+If gross, tare, and net weights are shown, extract the net weight (actual cargo/material weight).
 
 Target JSON Schema:
 {
-  "weight": number | null,            // Numeric value on the scale (e.g. 184.6)
+  "weight": number | null,            // Numeric value on the scale or net weight on ticket (e.g. 184.6)
   "unit": string | null,              // Unit shown (e.g. "kg", "lbs", "g")
   "date": string | null,              // Visible date string if display shows it (YYYY-MM-DD), otherwise null
   "time": string | null,              // Visible time string if display shows it (HH:MM:SS), otherwise null
@@ -76,6 +77,7 @@ Target JSON Schema:
 
     case "CERTIFICATE":
       return `Analyze this recycling / processing certificate document and extract the certified details.
+Note: For Certificate of Analysis / Quality, the overall certified shipment batch quantity may not be specified (only sample quantity). If the total certified consignment/shipment quantity is not explicitly stated, quantity should be null.
 
 Target JSON Schema:
 {
@@ -85,7 +87,7 @@ Target JSON Schema:
   "issueDate": string | null,          // Date of issuance
   "validUntil": string | null,         // Expiration / validity date
   "materialDescription": string | null,// Certified material category
-  "quantity": number | null,           // Certified quantity
+  "quantity": number | null,           // Certified quantity (null if only sample quantity shown)
   "quantityUnit": string | null,       // Certified quantity unit
   "transactionId": string | null,      // Cross-referenced transaction ID if noted
   "confidence": number,                // 0.0 to 1.0

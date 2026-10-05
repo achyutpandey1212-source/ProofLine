@@ -326,11 +326,11 @@ export const PlaygroundPage: React.FC = () => {
 
       // 2. Load demo files from /demo/ and upload
       const demoFiles = [
-        { path: "/demo/invoice-ew104.jpg", name: "invoice-ew104.jpg", type: "INVOICE" },
-        { path: "/demo/scale-ticket-01.jpg", name: "scale-ticket-01.jpg", type: "SCALE_IMAGE" },
-        { path: "/demo/scale-ticket-02.jpg", name: "scale-ticket-02.jpg", type: "SCALE_IMAGE" },
-        { path: "/demo/scale-ticket-03.jpg", name: "scale-ticket-03.jpg", type: "SCALE_IMAGE" },
-        { path: "/demo/certificate-ew104.pdf", name: "certificate-ew104.pdf", type: "CERTIFICATE" },
+        { path: "/demo/Commercial Invoice on Wooden Desk.png", name: "Commercial Invoice on Wooden Desk.png", type: "INVOICE" },
+        { path: "/demo/Industrial Weighbridge Ticket on Metal Surface.png", name: "Industrial Weighbridge Ticket on Metal Surface.png", type: "SCALE_IMAGE" },
+        { path: "/demo/Industrial Weighbridge Receipt on Steel.png", name: "Industrial Weighbridge Receipt on Steel.png", type: "SCALE_IMAGE" },
+        { path: "/demo/Industrial Weighbridge Ticket on Desk.png", name: "Industrial Weighbridge Ticket on Desk.png", type: "SCALE_IMAGE" },
+        { path: "/demo/Certificate of Analysis on Dark Desk.png", name: "Certificate of Analysis on Dark Desk.png", type: "CERTIFICATE" },
       ];
 
       const uploaded: any[] = [];

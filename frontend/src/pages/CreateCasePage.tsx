@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { GlowBackground } from "../components/ui/GlowBackground";
@@ -6,9 +6,11 @@ import { CaseService } from "../services/case.service";
 import { CustomSelect } from "../components/ui/CustomSelect";
 import { NumberInput } from "../components/ui/NumberInput";
 import { ArrowLeft, Save, AlertCircle, RefreshCw } from "lucide-react";
+import { useInteractiveDemo } from "../demo/InteractiveDemoDriver";
 
 export const CreateCasePage: React.FC = () => {
   const navigate = useNavigate();
+  const { demoState } = useInteractiveDemo();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,6 +23,13 @@ export const CreateCasePage: React.FC = () => {
     organization: "",
     notes: "",
   });
+
+  // Synchronize form dynamically during interactive demo typing
+  useEffect(() => {
+    if (demoState.isActive && (demoState.step === "TYPING_FORM" || demoState.step === "SUBMITTING_CASE")) {
+      setFormData(demoState.formData);
+    }
+  }, [demoState.isActive, demoState.step, demoState.formData]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -128,7 +137,11 @@ export const CreateCasePage: React.FC = () => {
                   value={formData.transactionId}
                   onChange={handleChange}
                   placeholder="e.g. EW-104"
-                  className="w-full h-11 px-4 rounded-xl bg-black/50 border border-white/10 focus:border-[#FF6D29] focus:outline-none text-xs text-white placeholder-[#BABABA]/30 font-display transition"
+                  className={`w-full h-11 px-4 rounded-xl bg-black/50 text-xs text-white placeholder-[#BABABA]/30 font-display transition ${
+                    demoState.activeField === "transactionId"
+                      ? "border border-[#FF6D29] ring-2 ring-[#FF6D29]/40 bg-black/80 shadow-[0_0_14px_rgba(255,109,41,0.25)]"
+                      : "border border-white/10 focus:border-[#FF6D29] focus:outline-none"
+                  }`}
                   required
                 />
               </div>
@@ -143,7 +156,11 @@ export const CreateCasePage: React.FC = () => {
                   value={formData.partnerName}
                   onChange={handleChange}
                   placeholder="e.g. ABC Recycling Pvt Ltd"
-                  className="w-full h-11 px-4 rounded-xl bg-black/50 border border-white/10 focus:border-[#FF6D29] focus:outline-none text-xs text-white placeholder-[#BABABA]/30 font-display transition"
+                  className={`w-full h-11 px-4 rounded-xl bg-black/50 text-xs text-white placeholder-[#BABABA]/30 font-display transition ${
+                    demoState.activeField === "partnerName"
+                      ? "border border-[#FF6D29] ring-2 ring-[#FF6D29]/40 bg-black/80 shadow-[0_0_14px_rgba(255,109,41,0.25)]"
+                      : "border border-white/10 focus:border-[#FF6D29] focus:outline-none"
+                  }`}
                   required
                 />
               </div>
@@ -161,7 +178,11 @@ export const CreateCasePage: React.FC = () => {
                   value={formData.material}
                   onChange={handleChange}
                   placeholder="e.g. PET Plastic Flakes"
-                  className="w-full h-11 px-4 rounded-xl bg-black/50 border border-white/10 focus:border-[#FF6D29] focus:outline-none text-xs text-white placeholder-[#BABABA]/30 font-display transition"
+                  className={`w-full h-11 px-4 rounded-xl bg-black/50 text-xs text-white placeholder-[#BABABA]/30 font-display transition ${
+                    demoState.activeField === "material"
+                      ? "border border-[#FF6D29] ring-2 ring-[#FF6D29]/40 bg-black/80 shadow-[0_0_14px_rgba(255,109,41,0.25)]"
+                      : "border border-white/10 focus:border-[#FF6D29] focus:outline-none"
+                  }`}
                   required
                 />
               </div>
@@ -170,14 +191,22 @@ export const CreateCasePage: React.FC = () => {
                 <label className="block text-xs font-display text-[#BABABA] mb-1.5 font-medium">
                   Claimed Quantity *
                 </label>
-                <NumberInput
-                  name="claimedQuantity"
-                  value={formData.claimedQuantity}
-                  onChange={handleChange}
-                  placeholder="e.g. 560"
-                  step={10}
-                  required
-                />
+                <div
+                  className={`rounded-xl transition ${
+                    demoState.activeField === "claimedQuantity"
+                      ? "ring-2 ring-[#FF6D29]/40 shadow-[0_0_14px_rgba(255,109,41,0.25)]"
+                      : ""
+                  }`}
+                >
+                  <NumberInput
+                    name="claimedQuantity"
+                    value={formData.claimedQuantity}
+                    onChange={handleChange}
+                    placeholder="e.g. 560"
+                    step={10}
+                    required
+                  />
+                </div>
               </div>
 
               <div>
@@ -208,7 +237,11 @@ export const CreateCasePage: React.FC = () => {
                 value={formData.organization}
                 onChange={handleChange}
                 placeholder="e.g. Apex Polymer Solutions"
-                className="w-full h-11 px-4 rounded-xl bg-black/50 border border-white/10 focus:border-[#FF6D29] focus:outline-none text-xs text-white placeholder-[#BABABA]/30 font-display transition"
+                className={`w-full h-11 px-4 rounded-xl bg-black/50 text-xs text-white placeholder-[#BABABA]/30 font-display transition ${
+                  demoState.activeField === "organization"
+                    ? "border border-[#FF6D29] ring-2 ring-[#FF6D29]/40 bg-black/80 shadow-[0_0_14px_rgba(255,109,41,0.25)]"
+                    : "border border-white/10 focus:border-[#FF6D29] focus:outline-none"
+                }`}
               />
             </div>
 
@@ -223,7 +256,11 @@ export const CreateCasePage: React.FC = () => {
                 value={formData.notes}
                 onChange={handleChange}
                 placeholder="Delivery note number, vehicle license, or intake notes"
-                className="w-full p-4 rounded-xl bg-black/50 border border-white/10 focus:border-[#FF6D29] focus:outline-none text-xs text-white placeholder-[#BABABA]/30 font-display transition resize-none"
+                className={`w-full p-4 rounded-xl bg-black/50 text-xs text-white placeholder-[#BABABA]/30 font-display transition resize-none ${
+                  demoState.activeField === "notes"
+                    ? "border border-[#FF6D29] ring-2 ring-[#FF6D29]/40 bg-black/80 shadow-[0_0_14px_rgba(255,109,41,0.25)]"
+                    : "border border-white/10 focus:border-[#FF6D29] focus:outline-none"
+                }`}
               />
             </div>
 
@@ -238,7 +275,11 @@ export const CreateCasePage: React.FC = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium shadow-[0_0_20px_rgba(255,109,41,0.35)] hover:shadow-[0_0_28px_rgba(255,109,41,0.55)] transition-all cursor-pointer disabled:opacity-50"
+                className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium transition-all cursor-pointer disabled:opacity-50 ${
+                  demoState.highlightSubmitButton
+                    ? "ring-2 ring-white ring-offset-2 ring-offset-[#141215] shadow-[0_0_24px_rgba(255,109,41,0.8)] scale-[1.03]"
+                    : "shadow-[0_0_20px_rgba(255,109,41,0.35)] hover:shadow-[0_0_28px_rgba(255,109,41,0.55)]"
+                }`}
               >
                 {submitting ? (
                   <>

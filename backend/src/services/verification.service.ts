@@ -78,6 +78,7 @@ export class VerificationService {
       }).populate<{ caseId: ICase }>("caseId");
 
       for (const coll of collidingEvidence) {
+        if (!coll.caseId || (caseDoc.isDemo && coll.caseId.isDemo)) continue;
         const localMatch = evidenceDocs.find((e) => e.file.fileHash === coll.file.fileHash);
         if (localMatch && coll.caseId) {
           crossCaseCollisions.push({

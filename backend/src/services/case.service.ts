@@ -1,6 +1,9 @@
 import crypto from "crypto";
 import mongoose from "mongoose";
 import { CaseModel, ICase } from "../models/case.model";
+import { EvidenceModel } from "../models/evidence.model";
+import { VerificationModel } from "../models/verification.model";
+import { FindingModel } from "../models/finding.model";
 import { CreateCaseDto } from "../validators/case.validator";
 import { AppError } from "../middleware/error.middleware";
 import { logger } from "../utils/logger";
@@ -25,7 +28,16 @@ export class CaseService {
     const caseId = this.generateCaseId(dto.transactionId);
 
     if (dto.isDemo) {
-      await CaseModel.deleteMany({ userId, isDemo: true });
+      const oldDemoCases = await CaseModel.find({ userId, isDemo: true }, { _id: 1 });
+      if (oldDemoCases.length > 0) {
+        const oldIds = oldDemoCases.map((c) => c._id);
+        await Promise.all([
+          CaseModel.deleteMany({ _id: { $in: oldIds } }),
+          EvidenceModel.deleteMany({ caseId: { $in: oldIds } }),
+          VerificationModel.deleteMany({ caseId: { $in: oldIds } }),
+          FindingModel.deleteMany({ caseId: { $in: oldIds } }),
+        ]);
+      }
     }
 
     const newCase = await CaseModel.create({
