@@ -13,18 +13,22 @@ export default defineConfig({
       "/cases": {
         target: "http://localhost:5000",
         changeOrigin: true,
+        bypass: (req) => (req.headers.accept?.includes("text/html") ? "/index.html" : null),
       },
       "/evidence": {
         target: "http://localhost:5000",
         changeOrigin: true,
+        bypass: (req) => (req.headers.accept?.includes("text/html") ? "/index.html" : null),
       },
       "/verification": {
         target: "http://localhost:5000",
         changeOrigin: true,
+        bypass: (req) => (req.headers.accept?.includes("text/html") ? "/index.html" : null),
       },
       "/api-keys": {
         target: "http://localhost:5000",
         changeOrigin: true,
+        bypass: (req) => (req.headers.accept?.includes("text/html") ? "/index.html" : null),
       },
       "/api": {
         target: "http://localhost:5000",
