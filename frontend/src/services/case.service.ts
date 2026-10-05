@@ -9,6 +9,7 @@ export interface CreateCasePayload {
   unit: string;
   organization?: string;
   notes?: string;
+  isDemo?: boolean;
 }
 
 export class CaseService {

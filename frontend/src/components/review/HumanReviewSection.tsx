@@ -53,7 +53,7 @@ export const HumanReviewSection: React.FC<HumanReviewSectionProps> = ({
       onDecisionUpdated(updated);
       setNote("");
       setSubmitSuccess(true);
-      setTimeout(() => setSubmitSuccess(false), 3000);
+      setTimeout(() => setSubmitSuccess(false), 6000);
     } catch (err: any) {
       setSubmitError(err?.message || "Failed to record human review decision.");
     } finally {
@@ -124,9 +124,14 @@ export const HumanReviewSection: React.FC<HumanReviewSectionProps> = ({
       )}
 
       {submitSuccess && (
-        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 font-display flex items-center gap-2 animate-in fade-in">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-          <span>Review decision successfully recorded and committed to audit trail.</span>
+        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-200 font-display space-y-1 shadow-[0_4px_20px_rgba(16,185,129,0.15)] animate-in fade-in">
+          <div className="flex items-center gap-2 font-medium">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>Decision recorded: {selectedDecision.replace(/_/g, " ")}</span>
+          </div>
+          <p className="text-[11px] text-emerald-300/80 pl-6 leading-relaxed">
+            The case disposition has been updated and an immutable entry added to the audit trail below.
+          </p>
         </div>
       )}
 

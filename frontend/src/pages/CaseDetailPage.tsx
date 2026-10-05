@@ -24,12 +24,10 @@ import {
   Scale,
   RefreshCw,
   ExternalLink,
-  Sparkles,
   Network,
   FlaskConical,
   FileCheck,
 } from "lucide-react";
-import { DemoManager } from "../demo/demoRunner";
 import { ProofGraphModal } from "../components/graph/ProofGraphModal";
 import { SimulationBanner } from "../components/SimulationBanner";
 import { SimulationModal } from "../components/simulation/SimulationModal";
@@ -132,25 +130,7 @@ export const CaseDetailPage: React.FC = () => {
     }
   };
 
-  const handleUploadDemoEvidence = async () => {
-    if (!caseId) return;
-    try {
-      setUploading(true);
-      setUploadError(null);
-
-      await DemoManager.uploadAllDemoEvidence(caseId);
-
-      const updatedEvidence = await EvidenceService.listEvidence(caseId);
-      setEvidenceList(updatedEvidence);
-
-      const updatedCase = await CaseService.getCase(caseId);
-      setCaseItem(updatedCase);
-    } catch (err) {
-      setUploadError(err instanceof Error ? err.message : "Failed to load demo evidence.");
-    } finally {
-      setUploading(false);
-    }
-  };
+  
 
   const navigate = useNavigate();
 
@@ -484,16 +464,7 @@ export const CaseDetailPage: React.FC = () => {
                 Attach weighing slips, scale photos, and commercial invoices
               </p>
             </div>
-            <button
-              type="button"
-              onClick={handleUploadDemoEvidence}
-              disabled={uploading}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-display text-[#FFA776] hover:text-white disabled:opacity-50 transition cursor-pointer"
-              title="Uploads synthetic invoice and 3 scale images"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#FF6D29]" />
-              <span>Load Demo Evidence (4 Files)</span>
-            </button>
+            
           </div>
 
           {/* Upload Form */}

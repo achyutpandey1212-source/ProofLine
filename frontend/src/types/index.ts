@@ -70,6 +70,7 @@ export interface CaseItem {
   resolutionNote?: string;
   resolvedAt?: string;
   notes?: string;
+  isDemo?: boolean;
   createdAt: string;
   updatedAt: string;
 }

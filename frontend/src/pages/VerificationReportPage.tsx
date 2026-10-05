@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { GlowBackground } from "../components/ui/GlowBackground";
 import { CaseService } from "../services/case.service";
@@ -32,6 +32,8 @@ export const VerificationReportPage: React.FC = () => {
   const { isSimulating, simulationResult } = useSimulation();
   const [showSimModal, setShowSimModal] = useState(false);
   const [showPacketModal, setShowPacketModal] = useState(false);
+  const [searchParams] = useSearchParams();
+  const isDemoParam = searchParams.get("demo") === "true";
 
   const [caseItem, setCaseItem] = useState<CaseItem | null>(null);
   const [evidenceList, setEvidenceList] = useState<EvidenceItem[]>([]);
@@ -170,6 +172,28 @@ export const VerificationReportPage: React.FC = () => {
       <Navbar />
 
       <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 pt-2 pb-24 flex-1 space-y-8 font-display">
+        {isDemoParam && !isSimulating && (
+          <div className="rounded-2xl border border-[#FF6D29]/30 bg-gradient-to-r from-[#FF6D29]/10 via-[#181014] to-[#120F12] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[0_4px_24px_rgba(255,109,41,0.15)]">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#FF6D29] animate-ping" />
+                <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#FFA776]">
+                  Interactive Demo Stage Complete
+                </span>
+              </div>
+              <p className="text-xs text-zinc-300 font-display">
+                The transaction verified with 0.79% variance within configured tolerance. Now test what happens when evidence conflicts.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowSimModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium shadow-[0_2px_14px_rgba(255,109,41,0.35)] hover:shadow-[0_2px_22px_rgba(255,109,41,0.55)] transition-all shrink-0 cursor-pointer"
+            >
+              <span>See how Proofline handles conflicting evidence &rarr;</span>
+            </button>
+          </div>
+        )}
         {/* Navigation Breadcrumb */}
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <Link
@@ -198,6 +222,24 @@ export const VerificationReportPage: React.FC = () => {
           <div className="absolute top-0 right-0 w-80 h-80 bg-[#FF6D29]/15 rounded-full blur-[90px] pointer-events-none" />
 
           {/* Top Tag & Badges */}
+            {/* Human Resolution Status Badge */}
+            {reviewSummary?.currentResolution && reviewSummary.currentResolution !== "PENDING_REVIEW" && (
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-[11px] font-mono text-[#BABABA]">Human Disposition:</span>
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-mono font-medium ${
+                  reviewSummary.currentResolution === "APPROVED"
+                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                    : reviewSummary.currentResolution === "REJECTED"
+                    ? "border-red-500/30 bg-red-500/10 text-red-400"
+                    : "border-amber-500/30 bg-amber-500/10 text-amber-400"
+                }`}>
+                  {reviewSummary.currentResolution.replace(/_/g, " ")}
+                </span>
+                {reviewSummary.resolutionNote && (
+                  <span className="text-xs text-[#BABABA] italic">&ldquo;{reviewSummary.resolutionNote}&rdquo;</span>
+                )}
+              </div>
+            )}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-1">

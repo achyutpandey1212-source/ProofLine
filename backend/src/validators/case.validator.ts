@@ -34,6 +34,9 @@ export const createCaseSchema = z.object({
     .trim()
     .max(2000)
     .optional(),
+  isDemo: z
+    .boolean()
+    .optional(),
 });
 
 // Route parameter schema for case identification

@@ -37,6 +37,7 @@ export interface ICase extends Document {
   resolvedBy?: Types.ObjectId;
   resolvedAt?: Date;
   notes?: string;
+  isDemo?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -130,6 +131,11 @@ const CaseSchema = new Schema<ICase>(
     notes: {
       type: String,
       trim: true,
+    },
+    isDemo: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
   },
   {

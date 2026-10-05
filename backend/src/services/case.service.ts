@@ -24,6 +24,10 @@ export class CaseService {
   ): Promise<ICase> {
     const caseId = this.generateCaseId(dto.transactionId);
 
+    if (dto.isDemo) {
+      await CaseModel.deleteMany({ userId, isDemo: true });
+    }
+
     const newCase = await CaseModel.create({
       caseId,
       userId,
@@ -34,6 +38,7 @@ export class CaseService {
       unit: dto.unit || "kg",
       organization: dto.organization,
       notes: dto.notes,
+      isDemo: Boolean(dto.isDemo),
       status: "CREATED",
     });
 

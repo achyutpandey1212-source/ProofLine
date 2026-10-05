@@ -4,15 +4,15 @@ import { Navbar } from "../components/Navbar";
 import { GlowBackground } from "../components/ui/GlowBackground";
 import { CaseService } from "../services/case.service";
 import { CaseItem } from "../types";
-import { Plus, ArrowRight, AlertCircle, FileSpreadsheet, Sparkles, RefreshCw, Key } from "lucide-react";
-import { FullDemoModal } from "../demo/FullDemoModal";
+import { Plus, Play, ArrowRight, AlertCircle, FileSpreadsheet, RefreshCw, Key } from "lucide-react";
+import { useInteractiveDemo } from "../demo/InteractiveDemoDriver";
 import { ApiKeyModal } from "../components/apiKeys/ApiKeyModal";
 
 export const CasesListPage: React.FC = () => {
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showDemoModal, setShowDemoModal] = useState(false);
+  const { demoState, startInteractiveDemo } = useInteractiveDemo();
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
 
   useEffect(() => {
@@ -111,11 +111,13 @@ export const CasesListPage: React.FC = () => {
               <span>API Keys</span>
             </button>
             <button
-              onClick={() => setShowDemoModal(true)}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-display text-white transition cursor-pointer"
+              onClick={startInteractiveDemo}
+              disabled={demoState.isActive}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF6D29] to-[#E04516] text-white text-xs font-display font-medium shadow-[0_0_22px_rgba(255,109,41,0.35)] hover:shadow-[0_0_30px_rgba(255,109,41,0.55)] transition-all cursor-pointer disabled:opacity-50"
+              title="Runs autonomous end-to-end interactive demo through real workflow"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#FF6D29]" />
-              <span>Run Demo</span>
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>{demoState.isActive ? "Demo In Progress..." : "Run Interactive Demo"}</span>
             </button>
             <Link
               to="/cases/new"
@@ -238,13 +240,7 @@ export const CasesListPage: React.FC = () => {
         )}
       </main>
 
-      <FullDemoModal
-        isOpen={showDemoModal}
-        onClose={() => {
-          setShowDemoModal(false);
-          loadCases();
-        }}
-      />
+      
 
       <ApiKeyModal
         isOpen={showApiKeyModal}

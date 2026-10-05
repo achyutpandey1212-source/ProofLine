@@ -3,10 +3,9 @@ import { useNavigate, Link } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { GlowBackground } from "../components/ui/GlowBackground";
 import { CaseService } from "../services/case.service";
-import { OFFICIAL_DEMO_SCENARIO } from "../demo/demoScenario";
 import { CustomSelect } from "../components/ui/CustomSelect";
 import { NumberInput } from "../components/ui/NumberInput";
-import { ArrowLeft, Save, AlertCircle, Sparkles, RefreshCw } from "lucide-react";
+import { ArrowLeft, Save, AlertCircle, RefreshCw } from "lucide-react";
 
 export const CreateCasePage: React.FC = () => {
   const navigate = useNavigate();
@@ -30,17 +29,7 @@ export const CreateCasePage: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFillDemoScenario = () => {
-    setFormData({
-      transactionId: OFFICIAL_DEMO_SCENARIO.caseData.transactionId,
-      partnerName: OFFICIAL_DEMO_SCENARIO.caseData.partnerName,
-      material: OFFICIAL_DEMO_SCENARIO.caseData.material,
-      claimedQuantity: String(OFFICIAL_DEMO_SCENARIO.caseData.claimedQuantity),
-      unit: OFFICIAL_DEMO_SCENARIO.caseData.unit,
-      organization: OFFICIAL_DEMO_SCENARIO.caseData.organization,
-      notes: OFFICIAL_DEMO_SCENARIO.caseData.notes,
-    });
-  };
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,15 +91,7 @@ export const CreateCasePage: React.FC = () => {
             <span>Back to Cases</span>
           </Link>
 
-          <button
-            type="button"
-            onClick={handleFillDemoScenario}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-display text-[#FFA776] hover:text-white transition-all cursor-pointer"
-            title="Populates official scenario fields (Transaction EW-104, 560 kg claimed PET flakes)"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#FF6D29]" />
-            <span>Load Demo (EW-104)</span>
-          </button>
+          
         </div>
 
         {/* Form Container */}
