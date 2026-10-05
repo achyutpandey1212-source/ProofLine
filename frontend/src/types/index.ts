@@ -71,6 +71,15 @@ export interface CaseItem {
   resolvedAt?: string;
   notes?: string;
   isDemo?: boolean;
+  findings?: {
+    title: string;
+    severity: string;
+    type: string;
+  }[];
+  calculatedValues?: {
+    variancePercentage?: number;
+    differenceWeight?: number;
+  } | null;
   createdAt: string;
   updatedAt: string;
 }

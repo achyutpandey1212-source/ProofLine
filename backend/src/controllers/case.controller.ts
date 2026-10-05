@@ -58,27 +58,59 @@ export class CaseController {
 
       const cases = await CaseService.listUserCases(req.user.userDoc._id);
 
+      // Concurrently query Findings and Verification calculatedValues for richer operational insights
+      const caseIds = cases.map((c) => c._id);
+      const { FindingModel } = await import("../models/finding.model");
+      const { VerificationModel } = await import("../models/verification.model");
+
+      const [allFindings, allVerifications] = await Promise.all([
+        FindingModel.find({ caseId: { $in: caseIds } }).select("caseId title severity type"),
+        VerificationModel.find({ caseId: { $in: caseIds } }).select("caseId calculatedValues"),
+      ]);
+
+      const findingsByCase = new Map<string, { title: string; severity: string; type: string }[]>();
+      for (const f of allFindings) {
+        const cId = f.caseId.toString();
+        const list = findingsByCase.get(cId) || [];
+        list.push({ title: f.title, severity: f.severity, type: f.type });
+        findingsByCase.set(cId, list);
+      }
+
+      const verifByCase = new Map<string, { variancePercentage?: number; differenceWeight?: number }>();
+      for (const v of allVerifications) {
+        const cId = v.caseId.toString();
+        verifByCase.set(cId, {
+          variancePercentage: v.calculatedValues?.variancePercentage,
+          differenceWeight: v.calculatedValues?.differenceWeight,
+        });
+      }
+
       res.status(200).json({
         success: true,
-        data: cases.map((c) => ({
-          id: c._id,
-          caseId: c.caseId,
-          transactionId: c.transactionId,
-          partnerName: c.partnerName,
-          material: c.material,
-          claimedQuantity: c.claimedQuantity,
-          unit: c.unit,
-          organization: c.organization,
-          status: c.status,
-          riskLevel: c.riskLevel,
-          notes: c.notes,
-          resolutionState: c.resolutionState || "PENDING_REVIEW",
-          resolutionNote: c.resolutionNote || null,
-          resolvedBy: c.resolvedBy || null,
-          resolvedAt: c.resolvedAt ? c.resolvedAt.toISOString() : null,
-          createdAt: c.createdAt,
-          updatedAt: c.updatedAt,
-        })),
+        data: cases.map((c) => {
+          const cId = c._id.toString();
+          return {
+            id: c._id,
+            caseId: c.caseId,
+            transactionId: c.transactionId,
+            partnerName: c.partnerName,
+            material: c.material,
+            claimedQuantity: c.claimedQuantity,
+            unit: c.unit,
+            organization: c.organization,
+            status: c.status,
+            riskLevel: c.riskLevel,
+            notes: c.notes,
+            resolutionState: c.resolutionState || "PENDING_REVIEW",
+            resolutionNote: c.resolutionNote || null,
+            resolvedBy: c.resolvedBy || null,
+            resolvedAt: c.resolvedAt ? c.resolvedAt.toISOString() : null,
+            findings: findingsByCase.get(cId) || [],
+            calculatedValues: verifByCase.get(cId) || null,
+            createdAt: c.createdAt,
+            updatedAt: c.updatedAt,
+          };
+        }),
       });
     } catch (err) {
       next(err);
