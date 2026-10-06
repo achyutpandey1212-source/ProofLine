@@ -17,6 +17,22 @@ export type WorkflowStep =
   | "COMPLETED"
   | "FAILED";
 
+export type EvidenceRunState = "QUEUED" | "READING" | "RETRYING" | "EXTRACTED" | "FAILED";
+
+export interface IEvidenceProgress {
+  evidenceId: string;
+  type: string;
+  state: EvidenceRunState;
+  startedAt?: Date;
+  completedAt?: Date;
+  note?: string;
+}
+
+export interface IWorkflowEvent {
+  at: Date;
+  message: string;
+}
+
 export interface IWorkflowRun extends Document {
   workflowId: string;
   caseId: Types.ObjectId; // References CaseModel._id
@@ -28,6 +44,8 @@ export interface IWorkflowRun extends Document {
   pendingEvidenceIds: string[];
   extractedEvidenceIds: string[];
   failedEvidenceIds: string[];
+  evidenceProgress: IEvidenceProgress[];
+  events: IWorkflowEvent[];
   retryCount: number;
   maxRetries: number;
   errorMessage?: string;
@@ -95,6 +113,28 @@ const WorkflowRunSchema = new Schema<IWorkflowRun>(
     pendingEvidenceIds: [{ type: String }],
     extractedEvidenceIds: [{ type: String }],
     failedEvidenceIds: [{ type: String }],
+    evidenceProgress: {
+      type: [
+        {
+          _id: false,
+          evidenceId: { type: String, required: true },
+          type: { type: String },
+          state: {
+            type: String,
+            enum: ["QUEUED", "READING", "RETRYING", "EXTRACTED", "FAILED"],
+            default: "QUEUED",
+          },
+          startedAt: { type: Date },
+          completedAt: { type: Date },
+          note: { type: String },
+        },
+      ],
+      default: [],
+    },
+    events: {
+      type: [{ _id: false, at: { type: Date, default: Date.now }, message: { type: String } }],
+      default: [],
+    },
     retryCount: {
       type: Number,
       default: 0,

@@ -63,7 +63,7 @@ export class ApiKeyPool {
    * Selects a healthy key from the pool using round-robin rotation.
    * Checks cooldowns and transitions recovered keys back to AVAILABLE.
    */
-  public getHealthyKey(): string | null {
+  public getHealthyKey(exclude?: ReadonlySet<string>): string | null {
     const now = Date.now();
 
     for (const item of this.keys) {
@@ -80,7 +80,7 @@ export class ApiKeyPool {
     for (let i = 0; i < this.keys.length; i++) {
       const idx = (this.lastUsedIndex + 1 + i) % this.keys.length;
       const keyItem = this.keys[idx];
-      if (keyItem && keyItem.state === "AVAILABLE") {
+      if (keyItem && keyItem.state === "AVAILABLE" && !exclude?.has(keyItem.key)) {
         this.lastUsedIndex = idx;
         return keyItem.key;
       }

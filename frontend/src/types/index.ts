@@ -164,6 +164,22 @@ export interface VerificationReport {
   verifiedAt?: string;
 }
 
+export type EvidenceRunState = "QUEUED" | "READING" | "RETRYING" | "EXTRACTED" | "FAILED";
+
+export interface WorkflowEvidenceProgress {
+  evidenceId: string;
+  type: string;
+  state: EvidenceRunState;
+  note?: string;
+  startedAt?: string;
+  completedAt?: string;
+}
+
+export interface WorkflowEvent {
+  at: string;
+  message: string;
+}
+
 export interface WorkflowProgress {
   workflowId: string;
   status: "CREATED" | "RUNNING" | "WAITING_RETRY" | "FAILED" | "COMPLETED";
@@ -174,6 +190,8 @@ export interface WorkflowProgress {
   errorMessage?: string;
   startedAt: string;
   completedAt?: string;
+  evidence?: WorkflowEvidenceProgress[];
+  events?: WorkflowEvent[];
 }
 
 export type GraphNodeType =

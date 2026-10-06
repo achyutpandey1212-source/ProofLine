@@ -52,10 +52,25 @@ export class VerificationController {
         return;
       }
 
+      const isAsync = req.query["async"] === "1";
+
       const result = await VerificationWorkflowService.executeCaseWorkflow({
         userId: req.user.userDoc._id,
         caseIdOrMongoId,
+        background: isAsync,
       });
+
+      if (isAsync) {
+        res.status(202).json({
+          success: true,
+          data: {
+            workflowId: result.workflowId,
+            workflowStatus: result.workflowStatus,
+            caseId: result.caseDoc.caseId,
+          },
+        });
+        return;
+      }
 
       res.status(200).json({
         success: true,
@@ -110,18 +125,30 @@ export class VerificationController {
         throw new AppError("No verification workflow has been started for this case.", 404, "NOT_FOUND");
       }
 
+      const evidenceProgress = (run.evidenceProgress ?? []).map((e) => ({
+        evidenceId: e.evidenceId,
+        type: e.type,
+        state: e.state,
+        note: e.note,
+        startedAt: e.startedAt,
+        completedAt: e.completedAt,
+      }));
+      const liveProcessed = evidenceProgress.filter((e) => e.state === "EXTRACTED").length;
+
       res.status(200).json({
         success: true,
         data: {
           workflowId: run.workflowId,
           status: run.status,
           step: run.currentStep,
-          processedEvidence: run.processedEvidenceCount,
-          totalEvidence: run.totalEvidenceCount,
+          processedEvidence: evidenceProgress.length > 0 ? liveProcessed : run.processedEvidenceCount,
+          totalEvidence: evidenceProgress.length > 0 ? evidenceProgress.length : run.totalEvidenceCount,
           retryCount: run.retryCount,
           errorMessage: run.errorMessage,
           startedAt: run.startedAt,
           completedAt: run.completedAt,
+          evidence: evidenceProgress,
+          events: (run.events ?? []).map((ev) => ({ at: ev.at, message: ev.message })),
         },
       });
     } catch (err) {

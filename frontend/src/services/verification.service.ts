@@ -6,7 +6,7 @@ export class VerificationClientService {
    * Triggers the complete verification workflow for a case.
    */
   public static async startVerification(caseId: string): Promise<void> {
-    await ApiClient.post(`/cases/${caseId}/verify`);
+    await ApiClient.post(`/cases/${caseId}/verify?async=1`);
   }
 
   /**

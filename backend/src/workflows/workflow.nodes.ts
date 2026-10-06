@@ -41,6 +41,41 @@ async function syncWorkflowRun(state: Partial<VerificationWorkflowState>): Promi
   }
 }
 
+/** Appends a human-readable activity event (capped at the latest 40). */
+async function pushEvent(workflowId: string | undefined, message: string): Promise<void> {
+  if (!workflowId) return;
+  try {
+    await WorkflowRunModel.updateOne(
+      { workflowId },
+      { $push: { events: { $each: [{ at: new Date(), message }], $slice: -40 } } }
+    );
+  } catch (err) {
+    logger.warn("Failed to append workflow event", { workflowId, error: err instanceof Error ? err.message : String(err) });
+  }
+}
+
+/** Updates the state of a single evidence item within the run's progress list. */
+async function setEvidenceProgress(
+  workflowId: string | undefined,
+  evidenceId: string,
+  patch: { state?: string; startedAt?: Date; completedAt?: Date; note?: string }
+): Promise<void> {
+  if (!workflowId) return;
+  try {
+    const set: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(patch)) {
+      if (v !== undefined) set[`evidenceProgress.$[e].${k}`] = v;
+    }
+    await WorkflowRunModel.updateOne(
+      { workflowId },
+      { $set: set },
+      { arrayFilters: [{ "e.evidenceId": evidenceId }] }
+    );
+  } catch (err) {
+    logger.warn("Failed to update evidence progress", { workflowId, evidenceId, error: err instanceof Error ? err.message : String(err) });
+  }
+}
+
 /**
  * Node 1: Load Case
  * Verifies case exists and is owned by the user.
@@ -131,6 +166,29 @@ export async function loadEvidenceNode(
   };
 
   await syncWorkflowRun({ workflowId: state.workflowId, ...updates });
+  if (state.workflowId) {
+    try {
+      await WorkflowRunModel.updateOne(
+        { workflowId: state.workflowId },
+        {
+          $set: {
+            evidenceProgress: evidenceList.map((ev) => ({
+              evidenceId: ev.evidenceId,
+              type: ev.type,
+              state: ev.status === "EXTRACTED" ? "EXTRACTED" : "QUEUED",
+              ...(ev.status === "EXTRACTED" ? { completedAt: new Date(), note: "Reused earlier extraction" } : {}),
+            })),
+          },
+        }
+      );
+    } catch (err) {
+      logger.warn("Failed to seed evidence progress", { error: err instanceof Error ? err.message : String(err) });
+    }
+  }
+  await pushEvent(
+    state.workflowId,
+    `Loaded ${evidenceList.length} evidence record${evidenceList.length === 1 ? "" : "s"}`
+  );
   return updates;
 }
 
@@ -194,20 +252,30 @@ export async function extractionNode(
   const transientErrors: string[] = [];
   const permanentErrors: string[] = [];
 
-  // Process evidence items sequentially with gentle spacing to avoid Google API burst limits
-  for (let i = 0; i < toExtract.length; i++) {
-    const evidenceId = toExtract[i];
-    if (!evidenceId) continue;
+  await pushEvent(
+    state.workflowId,
+    `Reading ${toExtract.length} document${toExtract.length === 1 ? "" : "s"} in parallel`
+  );
 
-    if (i > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 600));
-    }
+  const typeById = new Map(state.evidenceList.map((e) => [e.evidenceId, e.type]));
+
+  const extractOne = async (evidenceId: string): Promise<void> => {
+    const label = typeById.get(evidenceId) ?? evidenceId;
+    await setEvidenceProgress(state.workflowId, evidenceId, { state: "READING", startedAt: new Date() });
 
     try {
       const updatedDoc = await ExtractionService.extractEvidence({
         userId,
         caseIdOrMongoId: state.caseId,
         evidenceIdOrMongoId: evidenceId,
+        reclaimStale: true,
+        onProgress: (evt) => {
+          if (evt.kind === "retry") {
+            void setEvidenceProgress(state.workflowId, evidenceId, { state: "RETRYING", note: evt.detail });
+          } else if (evt.kind === "attempt") {
+            void setEvidenceProgress(state.workflowId, evidenceId, { state: "READING", note: evt.detail });
+          }
+        },
       });
 
       // Add to extracted list
@@ -229,6 +297,13 @@ export async function extractionNode(
           warnings: updatedDoc.extraction?.warnings,
         };
       }
+
+      await setEvidenceProgress(state.workflowId, evidenceId, {
+        state: "EXTRACTED",
+        completedAt: new Date(),
+        note: "",
+      });
+      await pushEvent(state.workflowId, `Extracted facts from ${label}`);
     } catch (err: unknown) {
       const failureClass: FailureClass = ApiKeyPool.classifyError(err);
       const errMsg = err instanceof Error ? err.message : String(err);
@@ -243,20 +318,45 @@ export async function extractionNode(
         (err instanceof AppError &&
           (err.code === "SCHEMA_VALIDATION_FAILED" ||
             err.code === "INVALID_MODEL_OUTPUT" ||
-            err.code === "NOT_FOUND" ||
-            err.code === "ALREADY_PROCESSING"));
+            err.code === "NOT_FOUND"));
 
       if (isPermanent) {
         permanentErrors.push(`${evidenceId}: ${errMsg}`);
         if (!updatedFailedIds.includes(evidenceId)) {
           updatedFailedIds.push(evidenceId);
         }
+        await setEvidenceProgress(state.workflowId, evidenceId, {
+          state: "FAILED",
+          completedAt: new Date(),
+          note: errMsg.slice(0, 160),
+        });
       } else {
         // Rate limit, quota, temporary failure, or network error
         transientErrors.push(`${evidenceId}: ${errMsg}`);
+        await setEvidenceProgress(state.workflowId, evidenceId, {
+          state: "RETRYING",
+          note: "Waiting to retry",
+        });
       }
     }
-  }
+  };
+
+  // Bounded worker pool. Each extraction is itself hedged across two API keys.
+  const CONCURRENCY = 5;
+  const queue = [...toExtract];
+  const workers = Array.from({ length: Math.min(CONCURRENCY, queue.length) }, async () => {
+    while (queue.length > 0) {
+      const next = queue.shift();
+      if (next) await extractOne(next);
+    }
+  });
+  await Promise.all(workers);
+
+  await syncWorkflowRun({
+    workflowId: state.workflowId,
+    extractedEvidenceIds: updatedExtractedIds,
+    evidenceList: updatedEvidenceList,
+  });
 
   // Recalculate remaining pending IDs
   const remainingPending = toExtract.filter((id) => !updatedExtractedIds.includes(id));
@@ -403,6 +503,11 @@ export async function verificationNode(
     evidenceDocs,
   });
 
+  await pushEvent(
+    state.workflowId,
+    `Reconciled measurements: ${engineResult.ruleResults.length} checks, ${engineResult.findings.length} finding${engineResult.findings.length === 1 ? "" : "s"}`
+  );
+
   const updates: Partial<VerificationWorkflowState> = {
     verificationEngineResult: engineResult,
     currentStep: "FINDINGS",
@@ -492,6 +597,8 @@ export async function finalPersistenceNode(
     workflowId: state.workflowId,
     ...updates,
   });
+
+  await pushEvent(state.workflowId, `Report sealed · overall risk ${engineResult.overallRisk}`);
 
   logger.info("[Workflow] Verification workflow completed successfully", {
     workflowId: state.workflowId,

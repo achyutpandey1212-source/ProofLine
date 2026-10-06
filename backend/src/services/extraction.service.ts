@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { CaseModel } from "../models/case.model";
 import { EvidenceModel, IEvidence } from "../models/evidence.model";
 import { geminiProvider } from "./aiProvider.service";
-import { GeminiExtractionService } from "./geminiExtraction.service";
+import { GeminiExtractionService, ExtractionProgressEvent } from "./geminiExtraction.service";
 import {
   getExtractionSystemInstruction,
   getExtractionPromptForType,
@@ -17,7 +17,7 @@ export class ExtractionService {
    */
   private static async fetchEvidenceBuffer(fileUrl: string): Promise<Buffer> {
     try {
-      const res = await fetch(fileUrl);
+      const res = await fetch(fileUrl, { signal: AbortSignal.timeout(30_000) });
       if (!res.ok) {
         throw new Error(`HTTP ${res.status} fetching evidence from storage`);
       }
@@ -39,6 +39,9 @@ export class ExtractionService {
     userId: mongoose.Types.ObjectId;
     caseIdOrMongoId: string;
     evidenceIdOrMongoId: string;
+    /** Set by the workflow (which already serialises runs per case) to reclaim items stuck in PROCESSING. */
+    reclaimStale?: boolean;
+    onProgress?: (event: ExtractionProgressEvent) => void;
   }): Promise<IEvidence> {
     const { userId, caseIdOrMongoId, evidenceIdOrMongoId } = params;
 
@@ -65,7 +68,7 @@ export class ExtractionService {
     }
 
     // 3. Concurrency Protection: Check if already processing
-    if (evidenceDoc.status === "PROCESSING") {
+    if (evidenceDoc.status === "PROCESSING" && !params.reclaimStale) {
       throw new AppError(
         "Evidence extraction is currently in progress. Duplicate extraction prevented.",
         409,
@@ -91,6 +94,7 @@ export class ExtractionService {
         prompt,
         fileBuffer,
         mimeType: evidenceDoc.file.mimeType,
+        onProgress: params.onProgress,
       });
 
       // 8. Parse JSON response

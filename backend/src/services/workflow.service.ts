@@ -27,6 +27,8 @@ export class VerificationWorkflowService {
   public static async executeCaseWorkflow(params: {
     userId: mongoose.Types.ObjectId;
     caseIdOrMongoId: string;
+    /** When true, returns as soon as the run is registered; the workflow continues in the background. */
+    background?: boolean;
   }): Promise<WorkflowExecutionResponse> {
     const { userId, caseIdOrMongoId } = params;
 
@@ -49,9 +51,13 @@ export class VerificationWorkflowService {
     });
 
     if (activeRun) {
-      // Check if it's stale (e.g. older than 5 minutes)
-      const isStale = Date.now() - activeRun.updatedAt.getTime() > 5 * 60 * 1000;
+      // Runs touch updatedAt on every progress write, so 3 quiet minutes means the process died.
+      const isStale = Date.now() - activeRun.updatedAt.getTime() > 3 * 60 * 1000;
       if (!isStale) {
+        if (params.background) {
+          // Attach the caller to the run that is already executing.
+          return { workflowId: activeRun.workflowId, workflowStatus: activeRun.status, findings: [], caseDoc };
+        }
         throw new AppError(
           "A verification workflow is already in progress for this case.",
           409,
@@ -100,7 +106,7 @@ export class VerificationWorkflowService {
       currentStep: "INIT",
       workflowStatus: "RUNNING",
       retryCount: 0,
-      maxRetries: 3,
+      maxRetries: 1,
       errorMessage: undefined,
       errorDetails: undefined,
       startedAt: new Date().toISOString(),
@@ -112,6 +118,46 @@ export class VerificationWorkflowService {
       caseId: caseDoc.caseId,
       userId: userId.toString(),
     });
+
+    // 5a. Background mode: detach, let the client poll real progress.
+    if (params.background) {
+      const WATCHDOG_MS = 4 * 60 * 1000;
+      let watchdog: NodeJS.Timeout | undefined;
+      const timeout = new Promise<never>((_, reject) => {
+        watchdog = setTimeout(
+          () => reject(new AppError("Verification exceeded the time limit.", 504, "WORKFLOW_TIMEOUT")),
+          WATCHDOG_MS
+        );
+      });
+
+      void Promise.race([verificationWorkflowApp.invoke(initialState), timeout])
+        .catch(async (err: unknown) => {
+          logger.error("Background verification workflow failed", {
+            workflowId,
+            caseId: caseDoc.caseId,
+            error: err instanceof Error ? err.message : String(err),
+          });
+          await WorkflowRunModel.updateOne(
+            { workflowId, status: { $ne: "COMPLETED" } },
+            {
+              $set: {
+                status: "FAILED",
+                currentStep: "FAILED",
+                errorMessage: err instanceof Error ? err.message : "Workflow failure",
+                completedAt: new Date(),
+              },
+            }
+          );
+          await CaseModel.updateOne({ _id: caseDoc._id, status: "PROCESSING" }, { $set: { status: "CREATED" } }).catch(
+            () => undefined
+          );
+        })
+        .finally(() => {
+          if (watchdog) clearTimeout(watchdog);
+        });
+
+      return { workflowId, workflowStatus: "RUNNING", findings: [], caseDoc };
+    }
 
     // 5. Execute LangGraph workflow
     try {

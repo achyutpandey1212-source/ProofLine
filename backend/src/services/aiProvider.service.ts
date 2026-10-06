@@ -29,6 +29,21 @@ export class GeminiProvider implements AIProvider {
   public async execute<T>(operation: (apiKey: string) => Promise<T>): Promise<T> {
     return this.keyPool.executeWithKey(operation);
   }
+
+  /** Picks a healthy key, preferring ones not in `exclude`. Falls back to any healthy key. */
+  public acquireKey(exclude?: ReadonlySet<string>): string | null {
+    return this.keyPool.getHealthyKey(exclude) ?? this.keyPool.getHealthyKey();
+  }
+
+  public reportKeySuccess(key: string): void {
+    this.keyPool.reportSuccess(key);
+  }
+
+  public reportKeyFailure(key: string, error: unknown): ReturnType<typeof ApiKeyPool.classifyError> {
+    const failureClass = ApiKeyPool.classifyError(error);
+    this.keyPool.reportFailure(key, failureClass, error instanceof Error ? error.message : String(error));
+    return failureClass;
+  }
 }
 
 export class GroqProvider implements AIProvider {
